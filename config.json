@@ -1,5 +1,16 @@
 {
-  "Target": "http://localhost:8080",
-  "Path": "/",
-  "Port": "80"
+  "Service": [
+    {
+      "Target": "http://localhost:8080/api2",
+      "Path": "/api1"
+    }
+  ],
+  "DynamicService": {
+    "Path": "/proxy",
+    "Query": "url"
+  },
+  "HTTPS":{
+    "CertFile": "cert.csr",
+    "KeyFile": "key.key"
+  }
 }

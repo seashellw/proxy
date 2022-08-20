@@ -9,12 +9,25 @@ import (
 	"strings"
 )
 
-type Config struct {
-	Target   string
-	Path     string
-	Port     string
+type HTTPSConfig struct {
 	CertFile string
 	KeyFile  string
+}
+
+type ServiceConfig struct {
+	Target string
+	Path   string
+}
+
+type DynamicServiceConfig struct {
+	Path  string
+	Query string
+}
+
+type Config struct {
+	Service        []ServiceConfig
+	DynamicService *DynamicServiceConfig
+	HTTPS          *HTTPSConfig
 }
 
 func readConfig() *Config {
@@ -26,16 +39,49 @@ func readConfig() *Config {
 	return &config
 }
 
+func addSlash(s string) string {
+	if !strings.HasSuffix(s, "/") {
+		return s + "/"
+	}
+	return s
+}
+
+//获取URL的GET参数
+func getUrlArg(r *http.Request, name string) string {
+	return r.URL.Query().Get(name)
+}
+
 func main() {
 	config := readConfig()
-	if !strings.HasSuffix(config.Target, "/") {
-		config.Target = config.Target + "/"
+
+	if config.Service != nil {
+		for _, service := range config.Service {
+			target, _ := url.Parse(service.Target)
+			proxy := httputil.NewSingleHostReverseProxy(target)
+			http.Handle(service.Path+"/", http.StripPrefix(service.Path, proxy))
+		}
 	}
-	if !strings.HasSuffix(config.Path, "/") {
-		config.Path = config.Path + "/"
+
+	if config.DynamicService != nil {
+		dynamicService := *config.DynamicService
+		dynamicService.Path = addSlash(dynamicService.Path)
+		http.HandleFunc(dynamicService.Path, func(w http.ResponseWriter, r *http.Request) {
+			target, _ := url.Parse(getUrlArg(r, dynamicService.Query))
+			targetHost := target.Host
+			targetScheme := target.Scheme
+			reqUrl := r.URL
+			r.URL = target
+			r.URL.Host = reqUrl.Host
+			r.URL.Scheme = reqUrl.Scheme
+			target, _ = url.Parse(targetScheme + "://" + targetHost)
+			proxy := httputil.NewSingleHostReverseProxy(target)
+			proxy.ServeHTTP(w, r)
+		})
 	}
-	target, _ := url.Parse(config.Target)
-	proxy := httputil.NewSingleHostReverseProxy(target)
-	http.Handle(config.Path, http.StripPrefix(config.Path, proxy))
-	http.ListenAndServeTLS(":"+config.Port, config.CertFile, config.KeyFile, nil)
+
+	if config.HTTPS != nil {
+		http.ListenAndServeTLS(":443", config.HTTPS.CertFile, config.HTTPS.KeyFile, nil)
+	} else {
+		http.ListenAndServe(":80", nil)
+	}
 }
