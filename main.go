@@ -60,10 +60,13 @@ func main() {
 			target, _ := url.Parse(getUrlArg(r, dynamicService.Query))
 			targetHost := target.Host
 			targetScheme := target.Scheme
-			reqUrl := r.URL
+			reqHost := r.URL.Host
+			reqScheme := r.URL.Scheme
+
 			r.URL = target
-			r.URL.Host = reqUrl.Host
-			r.URL.Scheme = reqUrl.Scheme
+			r.URL.Host = reqHost
+			r.URL.Scheme = reqScheme
+
 			target, _ = url.Parse(targetScheme + "://" + targetHost)
 			proxy := httputil.NewSingleHostReverseProxy(target)
 			proxy.ServeHTTP(w, r)
