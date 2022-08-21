@@ -6,7 +6,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
-	"strings"
 )
 
 type HTTPSConfig struct {
@@ -39,13 +38,6 @@ func readConfig() *Config {
 	return &config
 }
 
-func addSlash(s string) string {
-	if !strings.HasSuffix(s, "/") {
-		return s + "/"
-	}
-	return s
-}
-
 //获取URL的GET参数
 func getUrlArg(r *http.Request, name string) string {
 	return r.URL.Query().Get(name)
@@ -64,7 +56,6 @@ func main() {
 
 	if config.DynamicService != nil {
 		dynamicService := *config.DynamicService
-		dynamicService.Path = addSlash(dynamicService.Path)
 		http.HandleFunc(dynamicService.Path, func(w http.ResponseWriter, r *http.Request) {
 			target, _ := url.Parse(getUrlArg(r, dynamicService.Query))
 			targetHost := target.Host
