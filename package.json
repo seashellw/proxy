@@ -1,0 +1,12 @@
+{
+  "name": "proxy",
+  "scripts": {
+    "build": "node ./cmd/build.mjs"
+  },
+  "dependencies": {
+    "@types/node": "^17.0.45",
+    "prettier": "^2.7.1",
+    "typescript": "^4.7.4",
+    "zx": "^7.0.8"
+  }
+}

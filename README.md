@@ -3,6 +3,13 @@
 - 支持 HTTP，HTTPS，HTTP2，WS，WSS
 - 配置文件：`config.json`
 
+## 构建
+
+```
+pnpm install
+pnpm build
+```
+
 ## 配置示例
 
 ```json
