@@ -1,3 +1,3 @@
-module test1
+module proxy
 
 go 1.18
