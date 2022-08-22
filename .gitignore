@@ -1,5 +1,7 @@
 *.csr
 *.key
+*.crt
+*.pem
 
 npm-debug.log*
 yarn-error.log*
