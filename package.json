@@ -1,7 +1,8 @@
 {
   "name": "proxy",
   "scripts": {
-    "build": "node ./cmd/build.mjs"
+    "build": "node ./cmd/build.mjs",
+    "start": "node ./cmd/start.mjs"
   },
   "dependencies": {
     "@types/node": "^17.0.45",
