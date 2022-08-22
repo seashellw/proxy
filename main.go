@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -74,8 +75,14 @@ func main() {
 	}
 
 	if config.HTTPS != nil {
-		http.ListenAndServeTLS(":443", config.HTTPS.CertFile, config.HTTPS.KeyFile, nil)
+		err := http.ListenAndServeTLS(":443", config.HTTPS.CertFile, config.HTTPS.KeyFile, nil)
+		if err != nil {
+			log.Println(err)
+		}
 	} else {
-		http.ListenAndServe(":80", nil)
+		err := http.ListenAndServe(":80", nil)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
