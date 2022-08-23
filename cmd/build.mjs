@@ -1,8 +1,5 @@
 import { $ } from "zx";
-import { isWin } from "./kit.mjs";
+import { exeName } from "./kit.mjs";
 
-if (isWin()) {
-  $`go build -o proxy-server.exe`;
-} else {
-  $`go build -o proxy-server`;
-}
+await $`pnpm vue-tsc --noEmit && pnpm vite build`;
+await $`go build -o ${exeName}`;

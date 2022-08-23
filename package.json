@@ -2,12 +2,20 @@
   "name": "proxy",
   "scripts": {
     "build": "node ./cmd/build.mjs",
-    "start": "node ./cmd/start.mjs"
+    "start": "node ./cmd/start.mjs",
+    "reload": "node ./cmd/reload.mjs",
+    "dev": "node ./cmd/dev.mjs"
   },
   "dependencies": {
     "@types/node": "^17.0.45",
+    "@vitejs/plugin-vue": "^3.0.3",
+    "naive-ui": "^2.32.2",
     "prettier": "^2.7.1",
+    "@vicons/tabler": "^0.12.0",
     "typescript": "^4.7.4",
+    "vite": "^3.0.9",
+    "vue": "^3.2.37",
+    "vue-tsc": "^0.39.5",
     "zx": "^7.0.8"
   }
 }
