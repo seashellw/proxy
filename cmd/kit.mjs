@@ -28,8 +28,4 @@ export const install = async () => {
     console.log("install pm2");
     await $`pnpm add --global pm2`;
   }
-
-  if (!((await existCmd("go")) || isWin())) {
-    await $`curl -LO https://get.golang.org/$(uname)/go_installer && chmod +x go_installer && ./go_installer && rm go_installer`;
-  }
 };
