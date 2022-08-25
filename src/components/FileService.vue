@@ -1,48 +1,71 @@
 <script setup lang="ts">
-import { useVModels } from "@vueuse/core";
-import { FormItemRule, NForm, NInput } from "naive-ui";
-import { ref } from "vue";
-import { FileServiceConfig } from "../lib/config";
+import { ChevronsLeft } from "@vicons/tabler";
+import { FormRules, NForm, NFormItem, NIcon, NInput } from "naive-ui";
+import { ref, toRefs } from "vue";
+import { useConfigStore } from "../lib/config";
 import { testPath } from "../lib/formRules";
 
-const props = defineProps<{
-  config: FileServiceConfig;
+defineProps<{
+  index: number;
 }>();
 
-const emit = defineEmits<{
-  (e: "update:config", value: FileServiceConfig): void;
-}>();
+const { config } = toRefs(useConfigStore());
 
-const { config } = useVModels(props, emit);
-
-const rules = ref({
-  Path: {
-    validator(_: FormItemRule, value: string) {
-      if (!value) {
+const rules = ref<FormRules>({
+  Path: [
+    {
+      required: true,
+      trigger: ["input", "blur"],
+      validator(_, value: string) {
+        if (!value) {
+          return true;
+        }
+        if (!testPath(value)) {
+          return new Error("路径不能以斜杠结尾");
+        }
         return true;
-      }
-      if (!testPath(value)) {
-        return new Error("路径不能以斜杠结尾");
-      }
-      return true;
+      },
     },
-  },
-  Dir: {
-    validator(_: FormItemRule, value: string) {
-      if (!value) {
-        return new Error("必须填写目录路径");
-      }
-      return true;
+  ],
+  Dir: [
+    {
+      required: true,
+      trigger: ["input", "blur"],
+      validator(_, value: string) {
+        if (!value) {
+          return new Error("必须填写目录路径");
+        }
+        return true;
+      },
     },
-  },
+  ],
 });
 </script>
 
 <template>
-  <NForm ref="formRef" :model="config" :rules="rules">
-    <NInput v-model:value="config.Path" placeholder="源路径前缀" />
-    <NInput v-model:value="config.Dir" placeholder="文件目录" />
+  <NForm
+    ref="formRef"
+    :model="config.FileService?.[index]"
+    v-if="config.FileService?.[index]"
+    :rules="rules"
+    inline
+    class="form"
+  >
+    <NFormItem path="Path" label="源路径前缀">
+      <NInput v-model:value="config.FileService[index].Path" />
+    </NFormItem>
+    <NIcon class="icon" size="1.5rem">
+      <ChevronsLeft />
+    </NIcon>
+    <NFormItem path="Dir" label="文件目录">
+      <NInput v-model:value="config.FileService[index].Dir" />
+    </NFormItem>
   </NForm>
 </template>
 
-<style scoped></style>
+<style scoped>
+.icon {
+  align-self: center;
+  margin-right: 1rem;
+}
+</style>

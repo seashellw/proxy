@@ -1,4 +1,6 @@
 import { useDebounceFn } from "@vueuse/core";
+import { defineStore } from "pinia";
+import { ref } from "vue";
 import { get, post } from "./fetch";
 
 export interface HTTPSConfig {
@@ -27,15 +29,32 @@ export interface Config {
   HTTPS?: HTTPSConfig;
 }
 
-export const readConfig: () => Promise<Config | {}> = async () => {
-  let res = await get("/api/config");
-  try {
-    return JSON.parse(res);
-  } catch {
-    return {};
-  }
-};
+export const useConfigStore = defineStore("useConfigStore", () => {
+  const config = ref<Config>({});
 
-export const writeConfig = useDebounceFn(async (config: Config) => {
-  await post("/api/config", config);
-}, 1000);
+  const read = async () => {
+    let res = await get("/api/config");
+    try {
+      config.value = JSON.parse(res);
+    } catch {
+      config.value = {};
+    }
+    return config.value;
+  };
+
+  const write = useDebounceFn(async () => {
+    await post("/api/config", config.value);
+  }, 1000);
+
+  read().then(() => {
+    if (!config.value.Service?.length) {
+      config.value.Service = [];
+    }
+
+    if (!config.value.FileService?.length) {
+      config.value.FileService = [];
+    }
+  });
+
+  return { config, read, write };
+});

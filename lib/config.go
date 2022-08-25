@@ -37,10 +37,12 @@ type Config struct {
 
 var fileLock = &sync.RWMutex{}
 
+var ConfigFilePath = "./config.json"
+
 func (config *Config) ReadConfig() {
 	fileLock.RLock()
 	defer fileLock.RUnlock()
-	file, err := os.Open("./config.json")
+	file, err := os.Open(ConfigFilePath)
 	if err != nil {
 		return
 	}
@@ -52,7 +54,7 @@ func (config *Config) ReadConfig() {
 func (config *Config) ReadConfigJson() []byte {
 	fileLock.RLock()
 	defer fileLock.RUnlock()
-	file, err := os.Open("./config.json")
+	file, err := os.Open(ConfigFilePath)
 	if err != nil {
 		return []byte("{}")
 	}
@@ -71,7 +73,7 @@ func (config *Config) WriteConfig(configText []byte) {
 	}
 	json.Indent(&out, configText, "", "  ")
 	fileLock.Lock()
-	ioutil.WriteFile("./config.json", out.Bytes(), 0755)
+	ioutil.WriteFile(ConfigFilePath, out.Bytes(), 0755)
 	fileLock.Unlock()
 	config.ReadConfig()
 }

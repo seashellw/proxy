@@ -12,7 +12,7 @@ type Proxy struct {
 	Server *http.Server
 }
 
-func (proxy Proxy) StartProxyServer(config *Config) {
+func (proxy *Proxy) StartProxyServer(config *Config) {
 	if proxy.Server != nil {
 		proxy.StopProxyServer()
 	}
@@ -55,6 +55,8 @@ func (proxy Proxy) StartProxyServer(config *Config) {
 		Handler: mux,
 	}
 
+	log.Println("proxy server start")
+
 	if config.HTTPS != nil {
 		proxy.Server.Addr = ":443"
 		err := proxy.Server.ListenAndServeTLS(config.HTTPS.CertFile, config.HTTPS.KeyFile)
@@ -70,8 +72,9 @@ func (proxy Proxy) StartProxyServer(config *Config) {
 	}
 }
 
-func (proxy Proxy) StopProxyServer() {
+func (proxy *Proxy) StopProxyServer() {
 	if proxy.Server != nil {
 		proxy.Server.Shutdown(context.Background())
+		log.Println("proxy server stop")
 	}
 }
