@@ -3,14 +3,14 @@ package main
 import (
 	"embed"
 	"proxy/lib"
-	"proxy/view"
 )
 
 //go:embed dist
 var dist embed.FS
 
 func main() {
-	proxy := lib.Proxy{}
-	go proxy.StartProxyServer()
-	view.StartViewServer(&dist, &proxy)
+	proxy := &lib.Proxy{}
+	config := &lib.Config{}
+	go proxy.StartProxyServer(config)
+	lib.StartViewServer(&dist, proxy, config)
 }

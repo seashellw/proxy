@@ -1,36 +1,41 @@
+import { useDebounceFn } from "@vueuse/core";
 import { get, post } from "./fetch";
 
 export interface HTTPSConfig {
-  CertFile: string;
-  KeyFile: string;
+  CertFile?: string;
+  KeyFile?: string;
 }
 export interface ServiceConfig {
-  Target: string;
-  Path: string;
+  Target?: string;
+  Path?: string;
 }
 
 export interface DynamicServiceConfig {
-  Path: string;
-  Query: string;
+  Path?: string;
+  Query?: string;
+}
+
+export interface FileServiceConfig {
+  Path?: string;
+  Dir?: string;
 }
 
 export interface Config {
-  Service: ServiceConfig[];
-  DynamicService: DynamicServiceConfig;
-  HTTPS: HTTPSConfig;
+  Service?: ServiceConfig[];
+  FileService?: FileServiceConfig[];
+  DynamicService?: DynamicServiceConfig;
+  HTTPS?: HTTPSConfig;
 }
 
-export const readConfig: () => Promise<Config | null> = async () => {
+export const readConfig: () => Promise<Config | {}> = async () => {
   let res = await get("/api/config");
   try {
     return JSON.parse(res);
   } catch {
-    return null;
+    return {};
   }
 };
 
-export const writeConfig: (config: Config) => Promise<void> = async (
-  config
-) => {
+export const writeConfig = useDebounceFn(async (config: Config) => {
   await post("/api/config", config);
-};
+}, 1000);

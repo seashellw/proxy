@@ -1,16 +1,14 @@
-package view
+package lib
 
 import (
 	"embed"
 	"io/fs"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"proxy/config"
-	"proxy/lib"
 )
 
-func StartViewServer(dist *embed.FS, proxy *lib.Proxy) {
-	config := config.ReadConfig()
+func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 	mux := http.NewServeMux()
 
 	distFs, err := fs.Sub(dist, "dist")
@@ -22,8 +20,17 @@ func StartViewServer(dist *embed.FS, proxy *lib.Proxy) {
 	fs := http.FileServer(http.FS(distFs))
 	mux.Handle("/", fs)
 
-	handleGetConfig(mux)
-	handleSetConfig(mux, proxy)
+	mux.HandleFunc("/api/config", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(config.ReadConfigJson())
+	})
+
+	mux.HandleFunc("/api/configSet", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		configText, _ := ioutil.ReadAll(r.Body)
+		config.WriteConfig(configText)
+		proxy.StartProxyServer(config)
+	})
 
 	server := http.Server{
 		Addr:    ":9000",
@@ -43,17 +50,4 @@ func StartViewServer(dist *embed.FS, proxy *lib.Proxy) {
 			log.Println(err)
 		}
 	}
-}
-
-func handleGetConfig(mux *http.ServeMux) {
-	mux.HandleFunc("/api/config", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("config")
-	})
-}
-
-func handleSetConfig(mux *http.ServeMux, proxy *lib.Proxy) {
-	mux.HandleFunc("/api/configSet", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("configSet")
-		proxy.StartProxyServer()
-	})
 }

@@ -6,24 +6,16 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"proxy/config"
 )
-
-//获取URL的GET参数
-func getUrlArg(r *http.Request, name string) string {
-	return r.URL.Query().Get(name)
-}
 
 type Proxy struct {
 	Server *http.Server
 }
 
-func (proxy Proxy) StartProxyServer() {
+func (proxy Proxy) StartProxyServer(config *Config) {
 	if proxy.Server != nil {
 		proxy.StopProxyServer()
 	}
-
-	config := config.ReadConfig()
 	mux := http.NewServeMux()
 
 	if config.Service != nil {
@@ -34,10 +26,16 @@ func (proxy Proxy) StartProxyServer() {
 		}
 	}
 
+	if config.FileService != nil {
+		for _, service := range config.FileService {
+			mux.Handle(service.Path+"/", http.StripPrefix(service.Path, http.FileServer(http.Dir(service.Dir))))
+		}
+	}
+
 	if config.DynamicService != nil {
 		dynamicService := *config.DynamicService
 		mux.HandleFunc(dynamicService.Path, func(w http.ResponseWriter, r *http.Request) {
-			target, _ := url.Parse(getUrlArg(r, dynamicService.Query))
+			target, _ := url.Parse(r.URL.Query().Get(dynamicService.Query))
 			targetHost := target.Host
 			targetScheme := target.Scheme
 			reqHost := r.URL.Host
