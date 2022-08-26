@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ChevronsLeft } from "@vicons/tabler";
+import { ChevronsRight } from "@vicons/tabler";
 import { FormRules, NForm, NFormItem, NIcon, NInput } from "naive-ui";
 import { ref, toRefs } from "vue";
 import { useConfigStore } from "../lib/config";
-import { testPath } from "../lib/formRules";
+import { testPath, testUrl } from "../lib/formRules";
 
 defineProps<{
   index: number;
@@ -27,13 +27,16 @@ const rules = ref<FormRules>({
       },
     },
   ],
-  Dir: [
+  Target: [
     {
       required: true,
       trigger: ["input", "blur"],
       validator(_, value: string) {
         if (!value) {
-          return new Error("必须填写目录路径");
+          return new Error("必须填写目标路径");
+        }
+        if (!testUrl(value)) {
+          return new Error("目标路径格式不正确");
         }
         return true;
       },
@@ -45,20 +48,20 @@ const rules = ref<FormRules>({
 <template>
   <NForm
     ref="formRef"
-    :model="config.FileService?.[index]"
-    v-if="config.FileService?.[index]"
+    :model="config.Service?.[index]"
+    v-if="config.Service?.[index]"
     :rules="rules"
     inline
     class="form"
   >
     <NFormItem path="Path" label="源路径前缀" class="form-item">
-      <NInput class="input" v-model:value="config.FileService[index].Path" />
+      <NInput class="input" v-model:value="config.Service[index].Path" />
     </NFormItem>
     <NIcon class="icon" size="1.5rem">
-      <ChevronsLeft />
+      <ChevronsRight />
     </NIcon>
-    <NFormItem path="Dir" label="文件目录" class="form-item">
-      <NInput class="input" v-model:value="config.FileService[index].Dir" />
+    <NFormItem path="Target" label="目标路径前缀" class="form-item">
+      <NInput class="input" v-model:value="config.Service[index].Target" />
     </NFormItem>
   </NForm>
 </template>

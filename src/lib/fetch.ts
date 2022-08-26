@@ -13,5 +13,12 @@ export const post = async (path: string, body: any) => {
     },
     body: JSON.stringify(body),
   });
-  return await res.json();
+  if (!res.ok) {
+    throw new Error(await res.text());
+  }
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
 };

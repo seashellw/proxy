@@ -3,25 +3,22 @@ import { Minus, Plus } from "@vicons/tabler";
 import { NButton, NIcon, NList, NListItem } from "naive-ui";
 import { toRefs } from "vue";
 import { useConfigStore } from "../lib/config";
-import FileService from "./FileService.vue";
+import Service from "./Service.vue";
 
 const { config } = toRefs(useConfigStore());
 
 const handleAdd = () => {
-  if (!config.value.FileService) {
-    config.value.FileService = [];
+  if (!config.value.Service) {
+    config.value.Service = [];
   }
-  config.value.FileService = [
-    {
-      Path: "",
-      Dir: "",
-    },
-    ...config.value.FileService,
-  ];
+  config.value.Service.push({
+    Path: "",
+    Target: "",
+  });
 };
 
 const handleRemove = (index: number) => {
-  config.value.FileService?.splice(index, 1);
+  config.value.Service?.splice(index, 1);
 };
 </script>
 
@@ -29,7 +26,7 @@ const handleRemove = (index: number) => {
   <NList class="form-list" bordered>
     <template #header>
       <div class="form-header">
-        <h2>静态文件服务</h2>
+        <h2>代理服务</h2>
         <NButton @click="handleAdd" type="info">
           <template #icon>
             <NIcon>
@@ -39,9 +36,9 @@ const handleRemove = (index: number) => {
         </NButton>
       </div>
     </template>
-    <NListItem v-for="(_, index) in config.FileService" :key="index">
+    <NListItem v-for="(_, index) in config.Service" :key="index">
       <div class="form-list-item">
-        <FileService :index="index" class="item-input" />
+        <Service :index="index" class="item-input" />
         <NButton @click="handleRemove(index)" type="warning">
           <template #icon>
             <NIcon>

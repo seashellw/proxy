@@ -2,6 +2,7 @@ import { useDebounceFn } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { get, post } from "./fetch";
+import { message } from "./message";
 
 export interface HTTPSConfig {
   CertFile?: string;
@@ -23,28 +24,69 @@ export interface FileServiceConfig {
 }
 
 export interface Config {
+  Password?: string;
   Service?: ServiceConfig[];
   FileService?: FileServiceConfig[];
   DynamicService?: DynamicServiceConfig;
   HTTPS?: HTTPSConfig;
 }
 
+const readPassword = () => {
+  const password = localStorage.getItem("password");
+  return password || "";
+};
+
+const writePassword = (password: string) => {
+  localStorage.setItem("password", password);
+};
+
 export const useConfigStore = defineStore("useConfigStore", () => {
   const config = ref<Config>({});
 
+  const format = () => {
+    if (!config.value.FileService) {
+      config.value.FileService = [];
+    }
+    config.value.FileService = config.value.FileService.map((item) => ({
+      ...item,
+      Dir: item.Dir?.trim() || "",
+      Path: item.Path?.trim() || "",
+    })).filter((item) => item.Dir);
+
+    if (!config.value.Service) {
+      config.value.Service = [];
+    }
+    config.value.Service = config.value.Service.map((item) => ({
+      ...item,
+      Target: item.Target?.trim() || "",
+      Path: item.Path?.trim() || "",
+    })).filter((item) => item.Target);
+  };
+
   const read = async () => {
     let res = await get("/api/config");
-    try {
-      config.value = JSON.parse(res);
-    } catch {
-      config.value = {};
-    }
+    config.value = res || {};
+    format();
     return config.value;
   };
 
   const write = useDebounceFn(async () => {
-    await post("/api/config", config.value);
-  }, 1000);
+    let password = readPassword();
+    if (!password) {
+      password = prompt("请输入密码") || "";
+      writePassword(password);
+    }
+    config.value.Password = password;
+    format();
+    try {
+      await post("/api/configSet", config.value);
+    } catch (e) {
+      console.error(e);
+      message.error("写入配置失败");
+      return;
+    }
+    message.success("写入配置成功");
+  }, 500);
 
   read().then(() => {
     if (!config.value.Service?.length) {

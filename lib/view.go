@@ -2,8 +2,8 @@ package lib
 
 import (
 	"embed"
+	"encoding/json"
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -21,15 +21,38 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 	mux.Handle("/", fs)
 
 	mux.HandleFunc("/api/config", func(w http.ResponseWriter, r *http.Request) {
+		resConfig := *config
+		resConfig.Password = ""
+
+		configJson, err := json.Marshal(resConfig)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(config.ReadConfigJson())
+		w.Write(configJson)
 	})
 
 	mux.HandleFunc("/api/configSet", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		configText, _ := ioutil.ReadAll(r.Body)
-		config.WriteConfig(configText)
-		proxy.StartProxyServer(config)
+		reqConfig := &Config{}
+		json.NewDecoder(r.Body).Decode(reqConfig)
+		config.ReadConfig()
+
+		if reqConfig.Password != config.Password {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		configJson, err := json.Marshal(reqConfig)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		config.WriteConfig(configJson)
+		go proxy.StartProxyServer(config)
+		w.WriteHeader(http.StatusOK)
 	})
 
 	server := http.Server{

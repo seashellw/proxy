@@ -29,6 +29,7 @@ type FileServiceConfig struct {
 }
 
 type Config struct {
+	Password       string
 	Service        []ServiceConfig
 	FileService    []FileServiceConfig
 	DynamicService *DynamicServiceConfig
@@ -49,21 +50,6 @@ func (config *Config) ReadConfig() {
 	defer file.Close()
 	decoder := json.NewDecoder(file)
 	decoder.Decode(&config)
-}
-
-func (config *Config) ReadConfigJson() []byte {
-	fileLock.RLock()
-	defer fileLock.RUnlock()
-	file, err := os.Open(ConfigFilePath)
-	if err != nil {
-		return []byte("{}")
-	}
-	defer file.Close()
-	text, err := ioutil.ReadAll(file)
-	if err != nil {
-		return []byte("{}")
-	}
-	return text
 }
 
 func (config *Config) WriteConfig(configText []byte) {
