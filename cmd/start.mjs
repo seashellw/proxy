@@ -3,4 +3,4 @@ import { exeName, install } from "./kit.mjs";
 
 await install();
 
-await $`pm2 start ./${exeName}`;
+await $`pnpm pm2 start ./${exeName}`;

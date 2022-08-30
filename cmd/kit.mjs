@@ -24,8 +24,4 @@ export const install = async () => {
       await $`curl -fsSL https://get.pnpm.io/install.sh | sh -`;
     }
   }
-  if (!(await existCmd("pm2"))) {
-    console.log("install pm2");
-    await $`pnpm add --global pm2`;
-  }
 };
