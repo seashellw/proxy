@@ -40,7 +40,7 @@ var fileLock = &sync.RWMutex{}
 
 var ConfigFilePath = "./config.json"
 
-func (config *Config) ReadConfig() {
+func (config *Config) Read() {
 	fileLock.RLock()
 	defer fileLock.RUnlock()
 	file, err := os.Open(ConfigFilePath)
@@ -52,7 +52,7 @@ func (config *Config) ReadConfig() {
 	decoder.Decode(&config)
 }
 
-func (config *Config) WriteConfig(configText []byte) {
+func (config *Config) Write(configText []byte) {
 	var out bytes.Buffer
 	if len(configText) == 0 {
 		configText = []byte("{}")
@@ -61,5 +61,5 @@ func (config *Config) WriteConfig(configText []byte) {
 	fileLock.Lock()
 	ioutil.WriteFile(ConfigFilePath, out.Bytes(), 0755)
 	fileLock.Unlock()
-	config.ReadConfig()
+	config.Read()
 }

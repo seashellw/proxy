@@ -37,7 +37,8 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 	mux.HandleFunc("/api/configSet", func(w http.ResponseWriter, r *http.Request) {
 		reqConfig := &Config{}
 		json.NewDecoder(r.Body).Decode(reqConfig)
-		config.ReadConfig()
+		// 读取最新的密码
+		config.Read()
 
 		if reqConfig.Password != config.Password {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -50,7 +51,7 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 			return
 		}
 
-		config.WriteConfig(configJson)
+		config.Write(configJson)
 		go proxy.StartProxyServer(config)
 		w.WriteHeader(http.StatusOK)
 	})
