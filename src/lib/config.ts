@@ -44,6 +44,8 @@ const writePassword = (password: string) => {
   localStorage.setItem("password", password);
 };
 
+const pathSet = new Set<string>();
+
 const formatFileService = (config: Config) => {
   if (!config.FileService) {
     config.FileService = [];
@@ -86,6 +88,18 @@ export const useConfigStore = defineStore("useConfigStore", () => {
     formatFileService(config.value);
   };
 
+  const checkRepetition = () => {
+    pathSet.clear();
+    let count = 0;
+    count += config.value.Service?.length || 0;
+    config.value.Service?.forEach((item) => pathSet.add(item.Path || ""));
+    count += config.value.Redirect?.length || 0;
+    config.value.Redirect?.forEach((item) => pathSet.add(item.Path || ""));
+    count += config.value.FileService?.length || 0;
+    config.value.FileService?.forEach((item) => pathSet.add(item.Path || ""));
+    return pathSet.size === count;
+  };
+
   const read = async () => {
     let res = await get("/api/config");
     config.value = res || {};
@@ -97,19 +111,22 @@ export const useConfigStore = defineStore("useConfigStore", () => {
     let password = readPassword();
     if (!password) {
       password = prompt("请输入密码") || "";
-      writePassword(password);
     }
     config.value.Password = password;
     format();
+    if (!checkRepetition()) {
+      message.error("路径重复，禁止写入");
+      return;
+    }
     try {
       await post("/api/configSet", config.value);
     } catch (e) {
       console.error(e);
       message.error("写入配置失败");
-      writePassword("");
       return;
     }
     message.success("写入配置成功");
+    writePassword(password);
   }, 500);
 
   read().then(() => {
