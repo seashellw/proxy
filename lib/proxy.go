@@ -36,7 +36,7 @@ func (proxy *Proxy) StartProxyServer(config *Config) {
 
 	if config.FileService != nil {
 		for _, service := range config.FileService {
-			mux.Handle(service.Path+"/", http.StripPrefix(service.Path, http.FileServer(http.Dir(service.Dir))))
+			mux.Handle(service.Path, http.StripPrefix(service.Path, http.FileServer(http.Dir(service.Dir))))
 		}
 	}
 
