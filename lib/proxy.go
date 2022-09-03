@@ -22,13 +22,27 @@ func (proxy *Proxy) StartProxyServer(config *Config) {
 		for _, service := range config.Service {
 			target, _ := url.Parse(service.Target)
 			proxy := httputil.NewSingleHostReverseProxy(target)
+
+			if service.Path == "" {
+				mux.Handle("/", http.StripPrefix(service.Path, proxy))
+				continue
+			}
+
+			proxy.Director = func(req *http.Request) {
+				req.URL.Scheme = target.Scheme
+				req.URL.Host = target.Host
+				req.URL.Path = target.Path
+			}
+			mux.Handle(service.Path, proxy)
+
+			proxy = httputil.NewSingleHostReverseProxy(target)
 			mux.Handle(service.Path+"/", http.StripPrefix(service.Path, proxy))
 		}
 	}
 
 	if config.Redirect != nil {
 		for _, service := range config.Redirect {
-			mux.HandleFunc(service.Path+"/", func(w http.ResponseWriter, r *http.Request) {
+			mux.HandleFunc(service.Path, func(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, service.Target, http.StatusMovedPermanently)
 			})
 		}
@@ -36,7 +50,7 @@ func (proxy *Proxy) StartProxyServer(config *Config) {
 
 	if config.FileService != nil {
 		for _, service := range config.FileService {
-			mux.Handle(service.Path, http.StripPrefix(service.Path, http.FileServer(http.Dir(service.Dir))))
+			mux.Handle(service.Path+"/", http.StripPrefix(service.Path, http.FileServer(http.Dir(service.Dir))))
 		}
 	}
 
@@ -44,17 +58,10 @@ func (proxy *Proxy) StartProxyServer(config *Config) {
 		dynamicService := *config.DynamicService
 		mux.HandleFunc(dynamicService.Path, func(w http.ResponseWriter, r *http.Request) {
 			target, _ := url.Parse(r.URL.Query().Get(dynamicService.Query))
-			targetHost := target.Host
-			targetScheme := target.Scheme
-			reqHost := r.URL.Host
-			reqScheme := r.URL.Scheme
-
-			r.URL = target
-			r.URL.Host = reqHost
-			r.URL.Scheme = reqScheme
-
-			target, _ = url.Parse(targetScheme + "://" + targetHost)
 			proxy := httputil.NewSingleHostReverseProxy(target)
+			proxy.Director = func(req *http.Request) {
+				req.URL = target
+			}
 			proxy.ServeHTTP(w, r)
 		})
 	}
