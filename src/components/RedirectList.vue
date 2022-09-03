@@ -18,7 +18,7 @@ const handleAdd = () => {
 };
 
 const handleRemove = (index: number) => {
-  config.value.Service?.splice(index, 1);
+  config.value.Redirect?.splice(index, 1);
 };
 </script>
 
