@@ -14,7 +14,6 @@ const { config } = toRefs(useConfigStore());
 const rules = ref<FormRules>({
   Path: [
     {
-      required: true,
       trigger: ["input", "blur"],
       validator(_, value: string) {
         if (!value) {

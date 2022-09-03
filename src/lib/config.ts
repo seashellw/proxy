@@ -12,7 +12,10 @@ export interface ServiceConfig {
   Target?: string;
   Path?: string;
 }
-
+export interface RedirectConfig {
+  Target?: string;
+  Path?: string;
+}
 export interface DynamicServiceConfig {
   Path?: string;
   Query?: string;
@@ -26,6 +29,7 @@ export interface FileServiceConfig {
 export interface Config {
   Password?: string;
   Service?: ServiceConfig[];
+  Redirect?: RedirectConfig[];
   FileService?: FileServiceConfig[];
   DynamicService?: DynamicServiceConfig;
   HTTPS?: HTTPSConfig;
@@ -40,27 +44,46 @@ const writePassword = (password: string) => {
   localStorage.setItem("password", password);
 };
 
+const formatFileService = (config: Config) => {
+  if (!config.FileService) {
+    config.FileService = [];
+  }
+  config.FileService = config.FileService.map((item) => ({
+    ...item,
+    Dir: item.Dir?.trim() || "",
+    Path: item.Path?.trim() || "",
+  })).filter((item) => item.Dir);
+};
+
+const formatRedirect = (config: Config) => {
+  if (!config.Redirect) {
+    config.Redirect = [];
+  }
+  config.Redirect = config.Redirect.map((item) => ({
+    ...item,
+    Target: item.Target?.trim() || "",
+    Path: item.Path?.trim() || "",
+  })).filter((item) => item.Target);
+};
+
+const formatService = (config: Config) => {
+  if (!config.Service) {
+    config.Service = [];
+  }
+  config.Service = config.Service.map((item) => ({
+    ...item,
+    Target: item.Target?.trim() || "",
+    Path: item.Path?.trim() || "",
+  })).filter((item) => item.Target);
+};
+
 export const useConfigStore = defineStore("useConfigStore", () => {
   const config = ref<Config>({});
 
   const format = () => {
-    if (!config.value.FileService) {
-      config.value.FileService = [];
-    }
-    config.value.FileService = config.value.FileService.map((item) => ({
-      ...item,
-      Dir: item.Dir?.trim() || "",
-      Path: item.Path?.trim() || "",
-    })).filter((item) => item.Dir);
-
-    if (!config.value.Service) {
-      config.value.Service = [];
-    }
-    config.value.Service = config.value.Service.map((item) => ({
-      ...item,
-      Target: item.Target?.trim() || "",
-      Path: item.Path?.trim() || "",
-    })).filter((item) => item.Target);
+    formatService(config.value);
+    formatRedirect(config.value);
+    formatFileService(config.value);
   };
 
   const read = async () => {
@@ -83,6 +106,7 @@ export const useConfigStore = defineStore("useConfigStore", () => {
     } catch (e) {
       console.error(e);
       message.error("写入配置失败");
+      writePassword("");
       return;
     }
     message.success("写入配置成功");

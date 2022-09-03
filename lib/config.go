@@ -3,7 +3,6 @@ package lib
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"sync"
 )
@@ -28,9 +27,15 @@ type FileServiceConfig struct {
 	Dir  string
 }
 
+type RedirectConfig struct {
+	Path   string
+	Target string
+}
+
 type Config struct {
 	Password       string
 	Service        []ServiceConfig
+	Redirect       []RedirectConfig
 	FileService    []FileServiceConfig
 	DynamicService *DynamicServiceConfig
 	HTTPS          *HTTPSConfig
@@ -59,7 +64,7 @@ func (config *Config) Write(configText []byte) {
 	}
 	json.Indent(&out, configText, "", "  ")
 	fileLock.Lock()
-	ioutil.WriteFile(ConfigFilePath, out.Bytes(), 0755)
+	os.WriteFile(ConfigFilePath, out.Bytes(), 0755)
 	fileLock.Unlock()
 	config.Read()
 }

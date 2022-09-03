@@ -26,6 +26,14 @@ func (proxy *Proxy) StartProxyServer(config *Config) {
 		}
 	}
 
+	if config.Redirect != nil {
+		for _, service := range config.Redirect {
+			mux.HandleFunc(service.Path+"/", func(w http.ResponseWriter, r *http.Request) {
+				http.Redirect(w, r, service.Target, http.StatusMovedPermanently)
+			})
+		}
+	}
+
 	if config.FileService != nil {
 		for _, service := range config.FileService {
 			mux.Handle(service.Path+"/", http.StripPrefix(service.Path, http.FileServer(http.Dir(service.Dir))))
