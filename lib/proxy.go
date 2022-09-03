@@ -42,7 +42,7 @@ func (proxy *Proxy) StartProxyServer(config *Config) {
 
 	if config.Redirect != nil {
 		for _, service := range config.Redirect {
-			mux.HandleFunc(service.Path, func(w http.ResponseWriter, r *http.Request) {
+			mux.HandleFunc(service.Path+"/", func(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, service.Target, http.StatusMovedPermanently)
 			})
 		}
