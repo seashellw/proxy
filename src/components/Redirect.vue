@@ -59,7 +59,7 @@ const rules = ref<FormRules>({
     <NIcon class="icon" size="1.5rem">
       <ChevronsLeft />
     </NIcon>
-    <NFormItem path="Dir" label="目标路径" class="form-item">
+    <NFormItem path="Target" label="目标路径" class="form-item">
       <NInput class="input" v-model:value="config.Redirect[index].Target" />
     </NFormItem>
   </NForm>
