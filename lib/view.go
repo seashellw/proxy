@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"os/exec"
 )
 
 func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
@@ -54,6 +55,16 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 		config.Write(configJson)
 		go proxy.StartProxyServer(config)
 		w.WriteHeader(http.StatusOK)
+	})
+
+	mux.HandleFunc("/api/term", func(w http.ResponseWriter, r *http.Request) {
+		cmd := exec.Command("powershell", "pnpm", "pm2", "list")
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		w.Write(out)
 	})
 
 	server := http.Server{
