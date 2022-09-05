@@ -27,7 +27,7 @@ const handleRemove = (index: number) => {
     <template #header>
       <div class="form-header">
         <h2>代理服务</h2>
-        <NButton @click="handleAdd" type="info">
+        <NButton @click="handleAdd" type="info" circle>
           <template #icon>
             <NIcon>
               <Plus />
@@ -39,7 +39,7 @@ const handleRemove = (index: number) => {
     <NListItem v-for="(_, index) in config.Service" :key="index">
       <div class="form-list-item">
         <Service :index="index" class="item-input" />
-        <NButton @click="handleRemove(index)" type="warning">
+        <NButton @click="handleRemove(index)" type="warning" circle>
           <template #icon>
             <NIcon>
               <Minus />

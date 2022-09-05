@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Bolt } from "@vicons/tabler";
+import { AdjustmentsHorizontal, Bolt } from "@vicons/tabler";
 import { toRefs } from "@vueuse/core";
 import { NButton, NIcon, NLayoutHeader } from "naive-ui";
 import { useConfigStore } from "../lib/config";
@@ -8,11 +8,22 @@ const { write } = toRefs(useConfigStore());
 const handleSave = () => {
   write.value();
 };
+const handleSSH = () => {
+  window.open("https://app.tabby.sh");
+};
 </script>
 
 <template>
   <NLayoutHeader class="header">
     <h1>服务器配置面板</h1>
+    <NButton @click="handleSSH" type="info">
+      <template #icon>
+        <NIcon>
+          <AdjustmentsHorizontal />
+        </NIcon>
+      </template>
+      <span> SSH链接 </span>
+    </NButton>
     <NButton @click="handleSave" type="primary">
       <template #icon>
         <NIcon>
@@ -34,5 +45,6 @@ h1 {
   display: flex;
   padding: 1rem;
   align-items: center;
+  gap: 1rem;
 }
 </style>
