@@ -6,7 +6,12 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"strconv"
 )
+
+type ListResponse struct {
+	List [][]string
+}
 
 func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 	mux := http.NewServeMux()
@@ -21,6 +26,11 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 	mux.Handle("/", fs)
 
 	mux.HandleFunc("/api/config", func(w http.ResponseWriter, r *http.Request) {
+		password := r.URL.Query().Get("password")
+		if password != config.Password {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
 		resConfig := *config
 		resConfig.Password = ""
 
@@ -52,8 +62,41 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 		}
 
 		config.Write(configJson)
+		proxy.Logger.Info([]string{"config set", string(configJson)})
 		go proxy.StartProxyServer(config)
 		w.WriteHeader(http.StatusOK)
+	})
+
+	mux.HandleFunc("/api/log", func(w http.ResponseWriter, r *http.Request) {
+		password := r.URL.Query().Get("password")
+		if password != config.Password {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+
+		start, err := strconv.Atoi(r.URL.Query().Get("start"))
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		end, err := strconv.Atoi(r.URL.Query().Get("end"))
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		res := ListResponse{
+			List: proxy.Logger.Read(start, end),
+		}
+
+		jsonStr, err := json.Marshal(res)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonStr)
 	})
 
 	server := http.Server{
@@ -67,11 +110,13 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 		err := server.ListenAndServeTLS(config.HTTPS.CertFile, config.HTTPS.KeyFile)
 		if err != nil {
 			log.Println(err)
+			proxy.Logger.Error([]string{err.Error()})
 		}
 	} else {
 		err := server.ListenAndServe()
 		if err != nil {
 			log.Println(err)
+			proxy.Logger.Error([]string{err.Error()})
 		}
 	}
 }
