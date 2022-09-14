@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { AdjustmentsHorizontal, Bolt } from "@vicons/tabler";
-import { toRefs } from "@vueuse/core";
 import { NButton, NIcon, NLayoutHeader } from "naive-ui";
 import { useConfigStore } from "../lib/config";
 
-const { write } = toRefs(useConfigStore());
+const { write } = useConfigStore();
 const handleSave = () => {
-  write.value();
+  write();
 };
 const handleSSH = () => {
   window.open("https://app.tabby.sh");

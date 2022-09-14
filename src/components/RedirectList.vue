@@ -1,24 +1,23 @@
 <script setup lang="ts">
 import { Minus, Plus } from "@vicons/tabler";
 import { NButton, NIcon, NList, NListItem } from "naive-ui";
-import { toRefs } from "vue";
 import { useConfigStore } from "../lib/config";
 import Redirect from "./Redirect.vue";
 
-const { config } = toRefs(useConfigStore());
+const { config } = useConfigStore();
 
 const handleAdd = () => {
-  if (!config.value.Redirect) {
-    config.value.Redirect = [];
+  if (!config.Redirect) {
+    config.Redirect = [];
   }
-  config.value.Redirect.push({
+  config.Redirect.push({
     Path: "",
     Target: "",
   });
 };
 
 const handleRemove = (index: number) => {
-  config.value.Redirect?.splice(index, 1);
+  config.Redirect?.splice(index, 1);
 };
 </script>
 

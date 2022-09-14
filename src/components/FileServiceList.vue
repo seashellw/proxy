@@ -1,27 +1,23 @@
 <script setup lang="ts">
 import { Minus, Plus } from "@vicons/tabler";
 import { NButton, NIcon, NList, NListItem } from "naive-ui";
-import { toRefs } from "vue";
 import { useConfigStore } from "../lib/config";
 import FileService from "./FileService.vue";
 
-const { config } = toRefs(useConfigStore());
+const { config } = useConfigStore();
 
 const handleAdd = () => {
-  if (!config.value.FileService) {
-    config.value.FileService = [];
+  if (!config.FileService) {
+    config.FileService = [];
   }
-  config.value.FileService = [
-    {
-      Path: "",
-      Dir: "",
-    },
-    ...config.value.FileService,
-  ];
+  config.FileService.push({
+    Path: "",
+    Dir: "",
+  });
 };
 
 const handleRemove = (index: number) => {
-  config.value.FileService?.splice(index, 1);
+  config.FileService?.splice(index, 1);
 };
 </script>
 

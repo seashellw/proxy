@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ChevronsLeft } from "@vicons/tabler";
 import { FormRules, NForm, NFormItem, NIcon, NInput } from "naive-ui";
-import { ref, toRefs } from "vue";
+import { ref } from "vue";
 import { useConfigStore } from "../lib/config";
 import { testPath } from "../lib/formRules";
 
@@ -9,7 +9,9 @@ defineProps<{
   index: number;
 }>();
 
-const { config } = toRefs(useConfigStore());
+const {
+  config: { FileService },
+} = useConfigStore();
 
 const rules = ref<FormRules>({
   Path: [
@@ -44,20 +46,20 @@ const rules = ref<FormRules>({
 <template>
   <NForm
     ref="formRef"
-    :model="config.FileService?.[index]"
-    v-if="config.FileService?.[index]"
+    :model="FileService?.[index]"
+    v-if="FileService?.[index]"
     :rules="rules"
     inline
     class="form"
   >
     <NFormItem path="Path" label="源路径前缀" class="form-item">
-      <NInput class="input" v-model:value="config.FileService[index].Path" />
+      <NInput class="input" v-model:value="FileService[index].Path" />
     </NFormItem>
     <NIcon class="icon" size="1.5rem">
       <ChevronsLeft />
     </NIcon>
     <NFormItem path="Dir" label="文件目录" class="form-item">
-      <NInput class="input" v-model:value="config.FileService[index].Dir" />
+      <NInput class="input" v-model:value="FileService[index].Dir" />
     </NFormItem>
   </NForm>
 </template>

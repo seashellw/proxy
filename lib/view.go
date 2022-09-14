@@ -28,41 +28,45 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 	mux.HandleFunc("/api/config", func(w http.ResponseWriter, r *http.Request) {
 		password := r.URL.Query().Get("password")
 		if password != config.Password {
+			proxy.Logger.Info([]string{"/api/config", "password error, password: " + password})
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
 		resConfig := *config
 		resConfig.Password = ""
 
-		configJson, err := json.Marshal(resConfig)
+		bytes, err := json.Marshal(resConfig)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(configJson)
+		w.Write(bytes)
 	})
 
 	mux.HandleFunc("/api/configSet", func(w http.ResponseWriter, r *http.Request) {
-		reqConfig := &Config{}
-		json.NewDecoder(r.Body).Decode(reqConfig)
+		password := r.URL.Query().Get("password")
+		req := &Config{}
+		json.NewDecoder(r.Body).Decode(req)
+		req.Password = password
 		// 读取最新的密码
 		config.Read()
 
-		if reqConfig.Password != config.Password {
+		if req.Password != config.Password {
+			proxy.Logger.Info([]string{"/api/configSet", "password error, password: " + req.Password})
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		configJson, err := json.Marshal(reqConfig)
+		bytes, err := json.Marshal(req)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		config.Write(configJson)
-		proxy.Logger.Info([]string{"config set", string(configJson)})
+		config.Write(bytes)
+		proxy.Logger.Info([]string{"config set", string(bytes)})
 		go proxy.StartProxyServer(config)
 		w.WriteHeader(http.StatusOK)
 	})

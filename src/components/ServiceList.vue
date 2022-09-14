@@ -1,24 +1,23 @@
 <script setup lang="ts">
 import { Minus, Plus } from "@vicons/tabler";
 import { NButton, NIcon, NList, NListItem } from "naive-ui";
-import { toRefs } from "vue";
 import { useConfigStore } from "../lib/config";
 import Service from "./Service.vue";
 
-const { config } = toRefs(useConfigStore());
+const { config } = useConfigStore();
 
 const handleAdd = () => {
-  if (!config.value.Service) {
-    config.value.Service = [];
+  if (!config.Service) {
+    config.Service = [];
   }
-  config.value.Service.push({
+  config.Service.push({
     Path: "",
     Target: "",
   });
 };
 
 const handleRemove = (index: number) => {
-  config.value.Service?.splice(index, 1);
+  config.Service?.splice(index, 1);
 };
 </script>
 

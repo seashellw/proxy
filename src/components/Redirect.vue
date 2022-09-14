@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ChevronsLeft } from "@vicons/tabler";
 import { FormRules, NForm, NFormItem, NIcon, NInput } from "naive-ui";
-import { ref, toRefs } from "vue";
+import { ref } from "vue";
 import { useConfigStore } from "../lib/config";
 import { testPath } from "../lib/formRules";
 
@@ -9,7 +9,9 @@ defineProps<{
   index: number;
 }>();
 
-const { config } = toRefs(useConfigStore());
+const {
+  config: { Redirect },
+} = useConfigStore();
 
 const rules = ref<FormRules>({
   Path: [
@@ -47,20 +49,20 @@ const rules = ref<FormRules>({
 <template>
   <NForm
     ref="formRef"
-    :model="config.Redirect?.[index]"
-    v-if="config.Redirect?.[index]"
+    :model="Redirect?.[index]"
+    v-if="Redirect?.[index]"
     :rules="rules"
     inline
     class="form"
   >
     <NFormItem path="Path" label="源路径前缀" class="form-item">
-      <NInput class="input" v-model:value="config.Redirect[index].Path" />
+      <NInput class="input" v-model:value="Redirect[index].Path" />
     </NFormItem>
     <NIcon class="icon" size="1.5rem">
       <ChevronsLeft />
     </NIcon>
     <NFormItem path="Target" label="目标路径" class="form-item">
-      <NInput class="input" v-model:value="config.Redirect[index].Target" />
+      <NInput class="input" v-model:value="Redirect[index].Target" />
     </NFormItem>
   </NForm>
 </template>
