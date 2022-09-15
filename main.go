@@ -10,7 +10,7 @@ var dist embed.FS
 
 func main() {
 	proxy := &lib.Proxy{
-		Logger: lib.NewLogger("log.csv", 1000),
+		Logger: lib.NewLogger(),
 	}
 	config := &lib.Config{}
 	config.Read()

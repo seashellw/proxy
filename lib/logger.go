@@ -1,64 +1,42 @@
 package lib
 
 import (
-	"encoding/csv"
-	"os"
-	"sync"
-	"time"
+	"github.com/gookit/slog"
+	"github.com/gookit/slog/handler"
+	"github.com/gookit/slog/rotatefile"
 )
 
-func NewLogger(fileName string, length int) *Logger {
+func NewLogger() *Logger {
+	logger := slog.NewWithHandlers(
+		handler.NewBuilder().
+			WithLogfile("./tmp/error.log").
+			WithLogLevels(slog.DangerLevels).
+			WithBuffSize(1024*10).
+			WithBuffMode(handler.BuffModeBite).
+			WithRotateTime(rotatefile.EveryHour).
+			Build(),
+
+		handler.NewBuilder().
+			WithLogfile("./tmp/info.log").
+			WithLogLevels(slog.NormalLevels).
+			WithBuffSize(1024*10).
+			WithBuffMode(handler.BuffModeBite).
+			WithRotateTime(rotatefile.EveryHour).
+			Build(),
+	)
 	return &Logger{
-		FileName: fileName,
-		length:   length,
-		lock:     &sync.Mutex{},
-		list:     [][]string{},
+		slog: logger,
 	}
 }
 
 type Logger struct {
-	FileName string
-	length   int
-	list     [][]string
-	lock     *sync.Mutex
+	slog *slog.Logger
 }
 
-func (logger *Logger) Write(msg []string) {
-	logger.lock.Lock()
-	defer logger.lock.Unlock()
-	newLine := append([]string{time.Now().Format("2006-01-02 15:04:05")}, msg...)
-	logger.list = append(logger.list, newLine)
-	file, err := os.OpenFile(logger.FileName, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
-	if err != nil {
-		return
-	}
-	defer file.Close()
-	writer := csv.NewWriter(file)
-	writer.Write(newLine)
-	writer.Flush()
-
-	if len(logger.list) >= 2*logger.length {
-		logger.list = logger.list[logger.length:]
-		file, err := os.OpenFile(logger.FileName, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
-		if err != nil {
-			return
-		}
-		defer file.Close()
-		writer := csv.NewWriter(file)
-		writer.WriteAll(logger.list)
-	}
+func (logger *Logger) Error(args ...any) {
+	logger.slog.Error(args...)
 }
 
-func (logger *Logger) Read(start int, end int) [][]string {
-	logger.lock.Lock()
-	defer logger.lock.Unlock()
-	return logger.list[start:end]
-}
-
-func (logger *Logger) Error(msg []string) {
-	go logger.Write(append([]string{"error"}, msg...))
-}
-
-func (logger *Logger) Info(msg []string) {
-	go logger.Write(append([]string{"info"}, msg...))
+func (logger *Logger) Info(args ...any) {
+	logger.slog.Info(args...)
 }

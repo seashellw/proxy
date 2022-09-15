@@ -71,21 +71,21 @@ func (proxy *Proxy) StartProxyServer(config *Config) {
 		Handler: mux,
 	}
 
-	proxy.Logger.Info([]string{"proxy server start"})
+	proxy.Logger.Info("proxy server start")
 
 	if config.HTTPS != nil {
 		proxy.Server.Addr = ":443"
 		err := proxy.Server.ListenAndServeTLS(config.HTTPS.CertFile, config.HTTPS.KeyFile)
 		if err != nil {
 			log.Println(err)
-			proxy.Logger.Error([]string{err.Error()})
+			proxy.Logger.Error(err.Error())
 		}
 	} else {
 		proxy.Server.Addr = ":80"
 		err := proxy.Server.ListenAndServe()
 		if err != nil {
 			log.Println(err)
-			proxy.Logger.Error([]string{err.Error()})
+			proxy.Logger.Error(err.Error())
 		}
 	}
 }
@@ -93,6 +93,6 @@ func (proxy *Proxy) StartProxyServer(config *Config) {
 func (proxy *Proxy) StopProxyServer() {
 	if proxy.Server != nil {
 		proxy.Server.Shutdown(context.Background())
-		proxy.Logger.Info([]string{"proxy server stop"})
+		proxy.Logger.Info("proxy server stop")
 	}
 }

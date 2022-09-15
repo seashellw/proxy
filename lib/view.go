@@ -28,7 +28,7 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 	mux.HandleFunc("/api/config", func(w http.ResponseWriter, r *http.Request) {
 		password := r.URL.Query().Get("password")
 		if password != config.Password {
-			proxy.Logger.Info([]string{"/api/config", "password error, password: " + password})
+			proxy.Logger.Info("/api/config", "password error", password)
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
@@ -40,7 +40,7 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
+		proxy.Logger.Info("/api/config", string(bytes))
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(bytes)
 	})
@@ -54,7 +54,7 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 		config.Read()
 
 		if req.Password != config.Password {
-			proxy.Logger.Info([]string{"/api/configSet", "password error, password: " + req.Password})
+			proxy.Logger.Info("/api/configSet", "password error"+req.Password)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -66,7 +66,7 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 		}
 
 		config.Write(bytes)
-		proxy.Logger.Info([]string{"config set", string(bytes)})
+		proxy.Logger.Info("/api/configSet", string(bytes))
 		go proxy.StartProxyServer(config)
 		w.WriteHeader(http.StatusOK)
 	})
@@ -88,19 +88,10 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-
-		res := ListResponse{
-			List: proxy.Logger.Read(start, end),
-		}
-
-		jsonStr, err := json.Marshal(res)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		proxy.Logger.Info(start)
+		proxy.Logger.Info(end)
 
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(jsonStr)
 	})
 
 	server := http.Server{
@@ -108,19 +99,19 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 		Handler: mux,
 	}
 
-	log.Println("view server start at http://localhost:9000")
+	proxy.Logger.Info("view server start at http://localhost:9000")
 
 	if config.HTTPS != nil {
 		err := server.ListenAndServeTLS(config.HTTPS.CertFile, config.HTTPS.KeyFile)
 		if err != nil {
 			log.Println(err)
-			proxy.Logger.Error([]string{err.Error()})
+			proxy.Logger.Error(err.Error())
 		}
 	} else {
 		err := server.ListenAndServe()
 		if err != nil {
 			log.Println(err)
-			proxy.Logger.Error([]string{err.Error()})
+			proxy.Logger.Error(err.Error())
 		}
 	}
 }
