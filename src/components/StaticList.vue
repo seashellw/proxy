@@ -2,22 +2,22 @@
 import { Minus, Plus } from "@vicons/tabler";
 import { NButton, NIcon, NList, NListItem } from "naive-ui";
 import { useConfigStore } from "../lib/config";
-import FileService from "./FileService.vue";
+import Static from "./Static.vue";
 
 const { config } = useConfigStore();
 
 const handleAdd = () => {
-  if (!config.FileService) {
-    config.FileService = [];
+  if (!config.Static) {
+    config.Static = [];
   }
-  config.FileService.push({
+  config.Static.push({
     Path: "",
     Dir: "",
   });
 };
 
 const handleRemove = (index: number) => {
-  config.FileService?.splice(index, 1);
+  config.Static?.splice(index, 1);
 };
 </script>
 
@@ -35,9 +35,9 @@ const handleRemove = (index: number) => {
         </NButton>
       </div>
     </template>
-    <NListItem v-for="(_, index) in config.FileService" :key="index">
+    <NListItem v-for="(_, index) in config.Static" :key="index">
       <div class="form-list-item">
-        <FileService :index="index" class="item-input" />
+        <Static :index="index" class="item-input" />
         <NButton @click="handleRemove(index)" type="warning" circle>
           <template #icon>
             <NIcon>

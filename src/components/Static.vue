@@ -10,7 +10,7 @@ defineProps<{
 }>();
 
 const {
-  config: { FileService },
+  config: { Static },
 } = useConfigStore();
 
 const rules = ref<FormRules>({
@@ -46,20 +46,20 @@ const rules = ref<FormRules>({
 <template>
   <NForm
     ref="formRef"
-    :model="FileService?.[index]"
-    v-if="FileService?.[index]"
+    :model="Static?.[index]"
+    v-if="Static?.[index]"
     :rules="rules"
     inline
     class="form"
   >
     <NFormItem path="Path" label="源路径前缀" class="form-item">
-      <NInput class="input" v-model:value="FileService[index].Path" />
+      <NInput class="input" v-model:value="Static[index].Path" />
     </NFormItem>
     <NIcon class="icon" size="1.5rem">
       <ChevronsLeft />
     </NIcon>
     <NFormItem path="Dir" label="文件目录" class="form-item">
-      <NInput class="input" v-model:value="FileService[index].Dir" />
+      <NInput class="input" v-model:value="Static[index].Dir" />
     </NFormItem>
   </NForm>
 </template>

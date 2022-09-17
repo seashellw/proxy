@@ -1,4 +1,4 @@
 import { $ } from "zx";
-import { exeName } from "./kit.mjs";
+import { exeName } from "./kit";
 
 await $`pnpm pm2 start ./${exeName}`;

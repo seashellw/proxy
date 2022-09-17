@@ -2,11 +2,9 @@ package lib
 
 import (
 	"embed"
-	"encoding/json"
 	"io/fs"
-	"log"
 	"net/http"
-	"strconv"
+	"proxy/util"
 )
 
 type ListResponse struct {
@@ -14,103 +12,51 @@ type ListResponse struct {
 }
 
 func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
-	mux := http.NewServeMux()
+	server := util.NewServer()
+	fs, _ := fs.Sub(dist, "dist")
+	server.Static("/", http.FS(fs))
 
-	distFs, err := fs.Sub(dist, "dist")
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	fs := http.FileServer(http.FS(distFs))
-	mux.Handle("/", fs)
-
-	mux.HandleFunc("/api/config", func(w http.ResponseWriter, r *http.Request) {
-		password := r.URL.Query().Get("password")
+	server.Get("/api/config", func(ctx *util.Context) {
+		password := ctx.GetQuery("password")
 		if password != config.Password {
-			proxy.Logger.Info("/api/config", "password error", password)
-			w.WriteHeader(http.StatusForbidden)
+			ctx.SetForbidden("密码不正确")
 			return
 		}
-		resConfig := *config
-		resConfig.Password = ""
-
-		bytes, err := json.Marshal(resConfig)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		proxy.Logger.Info("/api/config", string(bytes))
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(bytes)
+		res := *config
+		res.Password = ""
+		ctx.SendJSON(res)
 	})
 
-	mux.HandleFunc("/api/configSet", func(w http.ResponseWriter, r *http.Request) {
-		password := r.URL.Query().Get("password")
+	server.Post("/api/configSet", func(ctx *util.Context) {
+		password := ctx.GetQuery("password")
+		if password != config.Password {
+			ctx.SetForbidden("密码不正确")
+			return
+		}
 		req := &Config{}
-		json.NewDecoder(r.Body).Decode(req)
-		req.Password = password
-		// 读取最新的密码
-		config.Read()
-
-		if req.Password != config.Password {
-			proxy.Logger.Info("/api/configSet", "password error"+req.Password)
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		bytes, err := json.Marshal(req)
+		err := ctx.GetJSON(req)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
-		config.Write(bytes)
-		proxy.Logger.Info("/api/configSet", string(bytes))
+		err = config.Set(req)
+		if err != nil {
+			ctx.SetBadRequest("请求体格式错误")
+			return
+		}
 		go proxy.StartProxyServer(config)
-		w.WriteHeader(http.StatusOK)
+		ctx.SetOK()
 	})
-
-	mux.HandleFunc("/api/log", func(w http.ResponseWriter, r *http.Request) {
-		password := r.URL.Query().Get("password")
-		if password != config.Password {
-			w.WriteHeader(http.StatusForbidden)
-			return
-		}
-
-		start, err := strconv.Atoi(r.URL.Query().Get("start"))
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		end, err := strconv.Atoi(r.URL.Query().Get("end"))
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		proxy.Logger.Info(start)
-		proxy.Logger.Info(end)
-
-		w.Header().Set("Content-Type", "application/json")
-	})
-
-	server := http.Server{
-		Addr:    ":9000",
-		Handler: mux,
-	}
 
 	proxy.Logger.Info("view server start at http://localhost:9000")
 
 	if config.HTTPS != nil {
-		err := server.ListenAndServeTLS(config.HTTPS.CertFile, config.HTTPS.KeyFile)
+		err := server.StartTLS(":9000", config.HTTPS.CertFile, config.HTTPS.KeyFile)
 		if err != nil {
-			log.Println(err)
 			proxy.Logger.Error(err.Error())
 		}
 	} else {
-		err := server.ListenAndServe()
+		err := server.Start(":9000")
 		if err != nil {
-			log.Println(err)
 			proxy.Logger.Error(err.Error())
 		}
 	}

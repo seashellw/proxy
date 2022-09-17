@@ -20,7 +20,7 @@ export interface DynamicServiceConfig {
   Query?: string;
 }
 
-export interface FileServiceConfig {
+export interface StaticConfig {
   Path?: string;
   Dir?: string;
 }
@@ -28,7 +28,7 @@ export interface FileServiceConfig {
 export interface Config {
   Service?: ServiceConfig[];
   Redirect?: RedirectConfig[];
-  FileService?: FileServiceConfig[];
+  Static?: StaticConfig[];
   DynamicService?: DynamicServiceConfig;
   HTTPS?: HTTPSConfig;
 }
@@ -44,11 +44,11 @@ const getPassword = () => {
 
 const pathSet = new Set<string>();
 
-const formatFileService = (config: Config) => {
-  if (!config.FileService) {
-    config.FileService = [];
+const formatStatic = (config: Config) => {
+  if (!config.Static) {
+    config.Static = [];
   }
-  config.FileService = config.FileService.map((item) => ({
+  config.Static = config.Static.map((item) => ({
     ...item,
     Dir: item.Dir?.trim() || "",
     Path: item.Path?.trim() || "",
@@ -82,11 +82,11 @@ const config = reactive<Config>({});
 const format = () => {
   formatService(config);
   formatRedirect(config);
-  formatFileService(config);
+  formatStatic(config);
 };
 
 const checkRepetition = () => {
-  const { Service, Redirect, FileService } = config;
+  const { Service, Redirect, Static } = config;
   pathSet.clear();
   let count = 0;
   const add = (item: { Path?: string }) => {
@@ -95,7 +95,7 @@ const checkRepetition = () => {
   };
   Service?.forEach(add);
   Redirect?.forEach(add);
-  FileService?.forEach(add);
+  Static?.forEach(add);
   return pathSet.size === count;
 };
 
@@ -132,8 +132,8 @@ export const init = async () => {
   if (!config.Service?.length) {
     config.Service = [];
   }
-  if (!config.FileService?.length) {
-    config.FileService = [];
+  if (!config.Static?.length) {
+    config.Static = [];
   }
 };
 

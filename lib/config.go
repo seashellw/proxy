@@ -22,7 +22,7 @@ type DynamicServiceConfig struct {
 	Query string
 }
 
-type FileServiceConfig struct {
+type StaticConfig struct {
 	Path string
 	Dir  string
 }
@@ -36,7 +36,7 @@ type Config struct {
 	Password       string
 	Service        []ServiceConfig
 	Redirect       []RedirectConfig
-	FileService    []FileServiceConfig
+	Static         []StaticConfig
 	DynamicService *DynamicServiceConfig
 	HTTPS          *HTTPSConfig
 }
@@ -45,26 +45,37 @@ var fileLock = &sync.RWMutex{}
 
 var ConfigFilePath = "./config.json"
 
-func (config *Config) Read() {
+func (config *Config) Get() *Config {
 	fileLock.RLock()
 	defer fileLock.RUnlock()
 	file, err := os.Open(ConfigFilePath)
 	if err != nil {
-		return
+		return nil
 	}
 	defer file.Close()
 	decoder := json.NewDecoder(file)
 	decoder.Decode(&config)
+	return config
 }
 
-func (config *Config) Write(configText []byte) {
+func (config *Config) Write(data []byte) {
 	var out bytes.Buffer
-	if len(configText) == 0 {
-		configText = []byte("{}")
+	if len(data) == 0 {
+		data = []byte("{}")
 	}
-	json.Indent(&out, configText, "", "  ")
+	json.Indent(&out, data, "", "  ")
 	fileLock.Lock()
 	os.WriteFile(ConfigFilePath, out.Bytes(), 0755)
 	fileLock.Unlock()
-	config.Read()
+	config.Get()
+}
+
+func (config *Config) Set(c *Config) error {
+	c.Password = config.Password
+	data, err := json.Marshal(c)
+	if err != nil {
+		return err
+	}
+	config.Write(data)
+	return err
 }

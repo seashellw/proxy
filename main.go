@@ -13,7 +13,7 @@ func main() {
 		Logger: lib.NewLogger(),
 	}
 	config := &lib.Config{}
-	config.Read()
+	config.Get()
 	go proxy.StartProxyServer(config)
 	lib.StartViewServer(&dist, proxy, config)
 }

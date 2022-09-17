@@ -3,8 +3,8 @@ import { darkTheme, NConfigProvider, NLayout, NLayoutContent } from "naive-ui";
 import { defineAsyncComponent } from "vue";
 import { init } from "./lib/config";
 
-const FileServiceList = defineAsyncComponent(
-  () => import("./components/FileServiceList.vue")
+const StaticList = defineAsyncComponent(
+  () => import("./components/StaticList.vue")
 );
 
 const LayoutHeader = defineAsyncComponent(
@@ -29,7 +29,7 @@ init();
       <NLayoutContent style="height: calc(100vh - 4rem)">
         <ServiceList />
         <RedirectList />
-        <FileServiceList />
+        <StaticList />
       </NLayoutContent>
     </NLayout>
   </NConfigProvider>
