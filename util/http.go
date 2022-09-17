@@ -20,12 +20,14 @@ type Context struct {
 	Res http.ResponseWriter
 }
 
+// 创建一个新的服务器
 func NewServer() *Server {
 	return &Server{
 		Mux: http.NewServeMux(),
 	}
 }
 
+// 启动
 func (s *Server) Start(addr string) error {
 	s.s = &http.Server{
 		Addr:    addr,
@@ -38,6 +40,7 @@ func (s *Server) Start(addr string) error {
 	return err
 }
 
+// HTTPS启动
 func (s *Server) StartTLS(addr string, certFile, keyFile string) error {
 	s.s = &http.Server{
 		Addr:    addr,
@@ -50,23 +53,27 @@ func (s *Server) StartTLS(addr string, certFile, keyFile string) error {
 	return err
 }
 
+// 停机
 func (s *Server) Stop() {
 	if s.s != nil {
 		s.s.Shutdown(context.Background())
 	}
 }
 
+// 静态资源服务，文件系统模式
 func (s *Server) Static(prefix string, fs http.FileSystem) *Server {
 	prefix = strings.TrimSuffix(prefix, "/")
 	s.Mux.Handle(prefix+"/", http.StripPrefix(prefix, http.FileServer(fs)))
 	return s
 }
 
+// 静态资源服务，本机目录模式
 func (s *Server) StaticDir(prefix, dir string) *Server {
 	prefix = strings.TrimSuffix(prefix, "/")
 	return s.Static(prefix+"/", http.Dir(dir))
 }
 
+// 添加处理程序
 func (s *Server) HandleFunc(pattern string, handler func(ctx *Context)) *Server {
 	s.Mux.HandleFunc(pattern, func(res http.ResponseWriter, req *http.Request) {
 		handler(&Context{
@@ -77,6 +84,7 @@ func (s *Server) HandleFunc(pattern string, handler func(ctx *Context)) *Server 
 	return s
 }
 
+// GET请求
 func (s *Server) Get(pattern string, handler func(ctx *Context)) *Server {
 	s.HandleFunc(pattern, func(ctx *Context) {
 		if ctx.Req.Method != http.MethodGet {
@@ -88,6 +96,7 @@ func (s *Server) Get(pattern string, handler func(ctx *Context)) *Server {
 	return s
 }
 
+// POST请求
 func (s *Server) Post(pattern string, handler func(ctx *Context)) *Server {
 	s.HandleFunc(pattern, func(ctx *Context) {
 		if ctx.Req.Method != http.MethodPost {
@@ -99,6 +108,7 @@ func (s *Server) Post(pattern string, handler func(ctx *Context)) *Server {
 	return s
 }
 
+// 代理服务
 func (s *Server) Proxy(pattern string, target string) *Server {
 	pattern = strings.TrimSuffix(pattern, "/")
 	target = strings.TrimSuffix(target, "/")
@@ -123,11 +133,15 @@ func (s *Server) Proxy(pattern string, target string) *Server {
 	return s
 }
 
+// -------------------以下为上下文方法-------------------
+
+// 重定向
 func (c *Context) RedirectTo(target string) *Context {
 	http.Redirect(c.Res, c.Req, target, http.StatusFound)
 	return c
 }
 
+// 代理到特定url
 func (c *Context) ProxyTo(target string) *Context {
 	targetUrl, _ := url.Parse(target)
 	proxy := httputil.NewSingleHostReverseProxy(targetUrl)
@@ -138,16 +152,19 @@ func (c *Context) ProxyTo(target string) *Context {
 	return c
 }
 
+// 设置响应状态码
 func (c *Context) SetStatus(code int) *Context {
 	c.Res.WriteHeader(code)
 	return c
 }
 
+// 设置状态码：StatusOK
 func (c *Context) SetOK() *Context {
 	c.SetStatus(http.StatusOK)
 	return c
 }
 
+// 设置状态码：StatusBadRequest，可选自定义响应体
 func (c *Context) SetBadRequest(msg ...string) *Context {
 	if len(msg) > 0 {
 		c.SendText(strings.Join(msg, "\n"))
@@ -156,6 +173,7 @@ func (c *Context) SetBadRequest(msg ...string) *Context {
 	return c
 }
 
+// 设置状态码：StatusNotFound，可选自定义响应体
 func (c *Context) SetUnauthorized(msg ...string) *Context {
 	if len(msg) > 0 {
 		c.SendText(strings.Join(msg, "\n"))
@@ -164,6 +182,7 @@ func (c *Context) SetUnauthorized(msg ...string) *Context {
 	return c
 }
 
+// 设置状态码：StatusNotFound，可选自定义响应体
 func (c *Context) SetForbidden(msg ...string) *Context {
 	if len(msg) > 0 {
 		c.SendText(strings.Join(msg, "\n"))
@@ -177,6 +196,7 @@ func (c *Context) SetNotFound() *Context {
 	return c
 }
 
+// 设置状态码：StatusInternalServerError，可选自定义响应体
 func (c *Context) SetInternalServerError(msg ...string) *Context {
 	if len(msg) > 0 {
 		c.SendText(strings.Join(msg, "\n"))
@@ -185,10 +205,12 @@ func (c *Context) SetInternalServerError(msg ...string) *Context {
 	return c
 }
 
+// 获取请求query
 func (c *Context) GetQuery(key string) string {
 	return c.Req.URL.Query().Get(key)
 }
 
+// 以JSON格式解码请求体
 func (c *Context) GetJSON(data any) error {
 	err := json.NewDecoder(c.Req.Body).Decode(data)
 	if err != nil {
@@ -197,23 +219,27 @@ func (c *Context) GetJSON(data any) error {
 	return err
 }
 
+// 以JSON格式发送响应
 func (c *Context) SendJSON(data any) *Context {
 	c.Res.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(c.Res).Encode(data)
 	return c
 }
 
+// 发送文本响应
 func (c *Context) SendText(text string) *Context {
 	c.Res.Header().Set("Content-Type", "text/plain")
 	c.Res.Write([]byte(text))
 	return c
 }
 
-func (c *Context) SendFileForPath(path string) *Context {
+// 发送文件，提供文件路径
+func (c *Context) SendFileFromPath(path string) *Context {
 	http.ServeFile(c.Res, c.Req, path)
 	return c
 }
 
+// 发送文件，提供文件系统和路径
 func (c *Context) SendFileForFS(fs http.FileSystem, path string) *Context {
 	file, err := fs.Open(path)
 	if err != nil {
