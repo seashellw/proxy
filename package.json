@@ -1,5 +1,6 @@
 {
   "name": "proxy",
+  "type": "module",
   "scripts": {
     "build": "tsx ./cmd/build.ts",
     "start": "tsx ./cmd/start.ts",
