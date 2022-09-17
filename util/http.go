@@ -103,13 +103,23 @@ func (s *Server) Proxy(pattern string, target string) *Server {
 	pattern = strings.TrimSuffix(pattern, "/")
 	target = strings.TrimSuffix(target, "/")
 	targetUrl, _ := url.Parse(target)
+
+	// 第一个处理程序，路径有斜杠，处理以此路径为前缀的所有路由
 	proxy := httputil.NewSingleHostReverseProxy(targetUrl)
+	s.Mux.Handle(pattern+"/", http.StripPrefix(pattern, proxy))
+
+	// 第二个处理程序，路径没有斜杠，只处理与此路径相等的路由
+	proxy = httputil.NewSingleHostReverseProxy(targetUrl)
 	proxy.Director = func(req *http.Request) {
 		req.URL.Scheme = targetUrl.Scheme
 		req.URL.Host = targetUrl.Host
-		req.URL.Path = strings.Replace(req.URL.Path, pattern, targetUrl.Path, 1)
+		req.URL.Path = targetUrl.Path
 	}
-	s.Mux.Handle(pattern+"/", proxy)
+	s.Mux.Handle(pattern, proxy)
+
+	// 若不定义两个处理程序，则经测试可能会出现在有斜杠和没斜杠之间反复重定向的问题，
+	// 例如：访问 /home 会重定向到 /home/，再访问 /home/ 会重定向到 /home，如此反复。
+	// 我暂未找到这种情况出现的原因，只能出此下策。
 	return s
 }
 
