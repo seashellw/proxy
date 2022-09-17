@@ -118,6 +118,10 @@ func (s *Server) Proxy(pattern string, target string) *Server {
 	proxy := httputil.NewSingleHostReverseProxy(targetUrl)
 	s.Mux.Handle(pattern+"/", http.StripPrefix(pattern, proxy))
 
+	if pattern == "" {
+		return s
+	}
+
 	// 第二个处理程序，路径没有斜杠，只处理与此路径相等的路由
 	proxy = httputil.NewSingleHostReverseProxy(targetUrl)
 	proxy.Director = func(req *http.Request) {
