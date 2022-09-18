@@ -37,7 +37,9 @@ export class Fetcher {
     let { onRequest, onResponse, base } = option || {};
 
     this.fetch = async (input, init) => {
-      input = new URL(input, base || undefined);
+      if (typeof input === "string" && base) {
+        input = base + input;
+      }
       let req: Parameters<NonNullable<typeof onRequest>>[0] | undefined = {
         input,
         init,
