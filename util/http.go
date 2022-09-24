@@ -63,14 +63,23 @@ func (s *Server) Stop() {
 // 静态资源服务，文件系统模式
 func (s *Server) Static(prefix string, fs http.FileSystem) *Server {
 	prefix = strings.TrimSuffix(prefix, "/")
-	s.Mux.Handle(prefix+"/", http.StripPrefix(prefix, http.FileServer(fs)))
+	handler := http.StripPrefix(prefix, http.FileServer(fs))
+	s.Mux.HandleFunc(prefix+"/", func(w http.ResponseWriter, r *http.Request) {
+		name := strings.TrimPrefix(r.URL.Path, prefix)
+		file, err := fs.Open(name)
+		if err != nil {
+			r.URL.Path = prefix + "/"
+		} else {
+			file.Close()
+		}
+		handler.ServeHTTP(w, r)
+	})
 	return s
 }
 
 // 静态资源服务，本机目录模式
 func (s *Server) StaticDir(prefix, dir string) *Server {
-	prefix = strings.TrimSuffix(prefix, "/")
-	return s.Static(prefix+"/", http.Dir(dir))
+	return s.Static(prefix, http.Dir(dir))
 }
 
 // 添加处理程序
