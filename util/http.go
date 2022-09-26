@@ -74,6 +74,10 @@ func (s *Server) Static(prefix string, fs http.FileSystem) *Server {
 		}
 		handler.ServeHTTP(w, r)
 	})
+	if prefix == "" {
+		return s
+	}
+	s.Mux.Handle(prefix, handler)
 	return s
 }
 
