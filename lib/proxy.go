@@ -33,7 +33,9 @@ func (proxy *Proxy) StartProxyServer(config *Config) {
 		for _, service := range config.Redirect {
 			service.Path = strings.TrimSuffix(service.Path, "/")
 			proxy.Server.HandleFunc(service.Path+"/", func(ctx *util.Context) {
-				ctx.RedirectTo(service.Target)
+				if ctx.Req.URL.Path == service.Path+"/" {
+					ctx.RedirectTo(service.Target)
+				}
 			})
 		}
 	}

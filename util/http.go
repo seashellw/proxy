@@ -183,28 +183,28 @@ func (c *Context) SetOK() *Context {
 
 // 设置状态码：StatusBadRequest，可选自定义响应体
 func (c *Context) SetBadRequest(msg ...string) *Context {
+	c.SetStatus(http.StatusBadRequest)
 	if len(msg) > 0 {
 		c.SendText(strings.Join(msg, "\n"))
 	}
-	c.SetStatus(http.StatusBadRequest)
 	return c
 }
 
 // 设置状态码：StatusNotFound，可选自定义响应体
 func (c *Context) SetUnauthorized(msg ...string) *Context {
+	c.SetStatus(http.StatusUnauthorized)
 	if len(msg) > 0 {
 		c.SendText(strings.Join(msg, "\n"))
 	}
-	c.SetStatus(http.StatusUnauthorized)
 	return c
 }
 
 // 设置状态码：StatusNotFound，可选自定义响应体
 func (c *Context) SetForbidden(msg ...string) *Context {
+	c.SetStatus(http.StatusForbidden)
 	if len(msg) > 0 {
 		c.SendText(strings.Join(msg, "\n"))
 	}
-	c.SetStatus(http.StatusForbidden)
 	return c
 }
 
@@ -215,10 +215,10 @@ func (c *Context) SetNotFound() *Context {
 
 // 设置状态码：StatusInternalServerError，可选自定义响应体
 func (c *Context) SetInternalServerError(msg ...string) *Context {
+	c.SetStatus(http.StatusInternalServerError)
 	if len(msg) > 0 {
 		c.SendText(strings.Join(msg, "\n"))
 	}
-	c.SetStatus(http.StatusInternalServerError)
 	return c
 }
 
