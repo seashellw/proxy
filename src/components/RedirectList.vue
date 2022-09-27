@@ -1,78 +1,18 @@
 <script setup lang="ts">
-import { Minus, Plus } from "@vicons/tabler";
-import { NButton, NIcon, NList, NListItem } from "naive-ui";
-import { useConfigStore } from "../lib/config";
-import Redirect from "./Redirect.vue";
+import { toRefs } from "vue";
+import { useConfigList } from "../lib/configList";
+import InputTable from "./InputTable.vue";
 
-const { config } = useConfigStore();
+const { config } = useConfigList();
 
-const handleAdd = () => {
-  if (!config.Redirect) {
-    config.Redirect = [];
-  }
-  config.Redirect.push({
-    Path: "",
-    Target: "",
-  });
-};
+let { Redirect } = toRefs(config);
 
-const handleRemove = (index: number) => {
-  config.Redirect?.splice(index, 1);
-};
+const head = ["源地址", "目标地址"];
 </script>
 
 <template>
-  <NList class="form-list" bordered>
-    <template #header>
-      <div class="form-header">
-        <h2>重定向服务</h2>
-        <NButton @click="handleAdd" type="info" circle>
-          <template #icon>
-            <NIcon>
-              <Plus />
-            </NIcon>
-          </template>
-        </NButton>
-      </div>
-    </template>
-    <NListItem v-for="(_, index) in config.Redirect" :key="index">
-      <div class="form-list-item">
-        <Redirect :index="index" class="item-input" />
-        <NButton @click="handleRemove(index)" type="warning" circle>
-          <template #icon>
-            <NIcon>
-              <Minus />
-            </NIcon>
-          </template>
-        </NButton>
-      </div>
-    </NListItem>
-  </NList>
+  <h3>重定向服务</h3>
+  <InputTable v-model:list="Redirect" :head="head" />
 </template>
 
-<style scoped>
-h2 {
-  margin: 0;
-  flex-grow: 1;
-  font-size: 1.2rem;
-}
-.form-list {
-  margin: 1rem;
-}
-
-.form-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.form-list-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.form-list-item .item-input {
-  flex-grow: 1;
-}
-</style>
+<style scoped></style>

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { darkTheme, NConfigProvider, NLayout, NLayoutContent } from "naive-ui";
 import { defineAsyncComponent } from "vue";
-import { init } from "./lib/config";
+import { useConfigList } from "./lib/configList";
+
+const { read } = useConfigList();
+read();
 
 const StaticList = defineAsyncComponent(
   () => import("./components/StaticList.vue")
@@ -18,8 +21,6 @@ const ServiceList = defineAsyncComponent(
 const RedirectList = defineAsyncComponent(
   () => import("./components/RedirectList.vue")
 );
-
-init();
 </script>
 
 <template>

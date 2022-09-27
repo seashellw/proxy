@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { AdjustmentsHorizontal, Bolt } from "@vicons/tabler";
 import { NButton, NIcon, NLayoutHeader } from "naive-ui";
-import { useConfigStore } from "../lib/config";
+import { useConfigList } from "../lib/configList";
 
-const { write } = useConfigStore();
+const { write } = useConfigList();
 const handleSave = () => {
   write();
 };

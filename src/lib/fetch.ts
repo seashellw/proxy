@@ -134,7 +134,16 @@ export class Fetcher {
   ) => Promise<Response>;
 }
 
-export const fetcher = new Fetcher();
+export const fetcher = new Fetcher({
+  onResponse: (res) => {
+    if (res.status === 403) {
+      // 密码不正确
+      localStorage.removeItem("password");
+      return;
+    }
+    return res;
+  },
+});
 
 const { get, post } = fetcher;
 

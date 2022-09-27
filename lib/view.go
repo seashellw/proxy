@@ -19,9 +19,10 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 	server.Get("/api/config", func(ctx *util.Context) {
 		password := ctx.GetQuery("password")
 		if password != config.Password {
-			ctx.SetForbidden("密码不正确")
+			ctx.SetForbidden()
 			return
 		}
+		config.Get()
 		res := *config
 		res.Password = ""
 		ctx.SendJSON(res)
@@ -30,17 +31,18 @@ func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
 	server.Post("/api/configSet", func(ctx *util.Context) {
 		password := ctx.GetQuery("password")
 		if password != config.Password {
-			ctx.SetForbidden("密码不正确")
+			ctx.SetForbidden()
 			return
 		}
 		req := &Config{}
 		err := ctx.GetJSON(req)
 		if err != nil {
+			ctx.SetBadRequest(err.Error())
 			return
 		}
 		err = config.Set(req)
 		if err != nil {
-			ctx.SetBadRequest("请求体格式错误")
+			ctx.SetBadRequest(err.Error())
 			return
 		}
 		go proxy.StartProxyServer(config)
