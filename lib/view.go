@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"embed"
 	"io/fs"
 	"net/http"
 	"proxy/util"
@@ -11,10 +10,9 @@ type ListResponse struct {
 	List [][]string
 }
 
-func StartViewServer(dist *embed.FS, proxy *Proxy, config *Config) {
+func StartViewServer(files *fs.FS, proxy *Proxy, config *Config) {
 	server := util.NewServer()
-	fs, _ := fs.Sub(dist, "dist")
-	server.Static("/", http.FS(fs))
+	server.Static("/", http.FS(*files))
 
 	server.Get("/api/config", func(ctx *util.Context) {
 		password := ctx.GetQuery("password")

@@ -146,7 +146,7 @@ func (s *Server) Proxy(pattern string, target string) *Server {
 
 	// 若不定义两个处理程序，则经测试可能会出现在有斜杠和没斜杠之间反复重定向的问题，
 	// 例如：访问 /home 会重定向到 /home/，再访问 /home/ 会重定向到 /home，如此反复。
-	// 我暂未找到这种情况出现的原因，只能出此下策。
+	// 我暂未找到这种情况出现的原因
 	return s
 }
 

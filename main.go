@@ -2,11 +2,12 @@ package main
 
 import (
 	"embed"
+	"io/fs"
 	"proxy/lib"
 )
 
-//go:embed dist
-var dist embed.FS
+//go:embed client
+var client embed.FS
 
 func main() {
 	proxy := &lib.Proxy{
@@ -15,5 +16,6 @@ func main() {
 	config := &lib.Config{}
 	config.Get()
 	go proxy.StartProxyServer(config)
-	lib.StartViewServer(&dist, proxy, config)
+	files, _ := fs.Sub(client, "client")
+	lib.StartViewServer(&files, proxy, config)
 }
