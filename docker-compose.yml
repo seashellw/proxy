@@ -17,6 +17,6 @@ services:
     build: ./home
     volumes:
       - home-dist:/dist
-    command: cp -r /root/dist /dist
+    command: cp -r /root/dist/* /dist
 volumes:
   home-dist:
