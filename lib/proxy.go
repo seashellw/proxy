@@ -1,38 +1,40 @@
 package lib
 
 import (
-	"proxy/util"
+	"log"
+	"proxy/hp"
 	"strings"
 )
 
 type Proxy struct {
-	Server *util.Server
-	Logger *Logger
+	Server *hp.Server
+	Config *Config
 }
 
-func (proxy *Proxy) StartProxyServer(config *Config) {
+func (proxy *Proxy) Start() {
 	if proxy.Server != nil {
-		proxy.StopProxyServer()
+		proxy.Stop()
 	}
 
-	proxy.Server = util.NewServer()
+	proxy.Server = hp.NewServer()
+	c := proxy.Config
 
-	if config.Service != nil {
-		for _, service := range config.Service {
+	if c.Service != nil {
+		for _, service := range c.Service {
 			proxy.Server.Proxy(service.Path, service.Target)
 		}
 	}
 
-	if config.Static != nil {
-		for _, service := range config.Static {
+	if c.Static != nil {
+		for _, service := range c.Static {
 			proxy.Server.StaticDir(service.Path, service.Dir)
 		}
 	}
 
-	if config.Redirect != nil {
-		for _, service := range config.Redirect {
+	if c.Redirect != nil {
+		for _, service := range c.Redirect {
 			service.Path = strings.TrimSuffix(service.Path, "/")
-			proxy.Server.HandleFunc(service.Path+"/", func(ctx *util.Context) {
+			proxy.Server.HandleFunc(service.Path+"/", func(ctx *hp.Context) {
 				if ctx.Req.URL.Path == service.Path+"/" {
 					ctx.RedirectTo(service.Target)
 				}
@@ -40,34 +42,34 @@ func (proxy *Proxy) StartProxyServer(config *Config) {
 		}
 	}
 
-	if config.DynamicService != nil {
-		service := *config.DynamicService
-		proxy.Server.HandleFunc(service.Path, func(ctx *util.Context) {
+	if c.DynamicService != nil {
+		service := *c.DynamicService
+		proxy.Server.HandleFunc(service.Path, func(ctx *hp.Context) {
 			target := ctx.GetQuery(service.Query)
 			if target == "" {
-				ctx.SetBadRequest("代理目标为空")
+				ctx.SetBadRequest()
 				return
 			}
 			ctx.ProxyTo(target)
 		})
 	}
 
-	proxy.Logger.Info("proxy server start")
+	log.Println("proxy server start")
 
-	if config.HTTPS != nil {
-		err := proxy.Server.StartTLS(":443", config.HTTPS.CertFile, config.HTTPS.KeyFile)
+	if c.HTTPS != nil {
+		err := proxy.Server.StartTLS(":443", c.HTTPS.CertFile, c.HTTPS.KeyFile)
 		if err != nil {
-			proxy.Logger.Error(err.Error())
+			log.Println(err)
 		}
 	} else {
 		err := proxy.Server.Start(":80")
 		if err != nil {
-			proxy.Logger.Error(err.Error())
+			log.Println(err)
 		}
 	}
 }
 
-func (proxy *Proxy) StopProxyServer() {
+func (proxy *Proxy) Stop() {
 	proxy.Server.Stop()
-	proxy.Logger.Info("proxy server stop")
+	log.Println("proxy server stop")
 }
