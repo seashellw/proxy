@@ -22,21 +22,26 @@ func (cdn *CDN) Start() {
 			return
 		}
 		for _, cdn := range cdn.CdnList {
-			cdnRes, err := http.Get(cdn + path)
+			res, err := http.Get(cdn + path)
 			if err != nil {
 				log.Println(err)
 				continue
 			}
-			if cdnRes.StatusCode != http.StatusOK {
-				log.Println(cdnRes.Status, cdn+path)
+			if res.StatusCode != http.StatusOK {
+				log.Println(res.Status, cdn+path)
 				continue
 			}
-			ctx.Res.Header().Set("Content-Type", cdnRes.Header.Get("Content-Type"))
-			_, _ = io.Copy(ctx.Res, cdnRes.Body)
+			for key, head := range res.Header {
+				for _, val := range head {
+					ctx.Res.Header().Add(key, val)
+				}
+			}
+			_, _ = io.Copy(ctx.Res, res.Body)
 			return
 		}
 		ctx.SetNotFound()
 	})
+
 	log.Println("cdn proxy server start")
 
 	if cdn.Config.HTTPS != nil {

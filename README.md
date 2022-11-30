@@ -7,20 +7,22 @@
   "Password": "",
   "Service": [
     {
-      "Target": "http://localhost:8080/api2",
-      "Path": "/api1"
+      "Path": "/server",
+      "Target": "http://server/server"
     }
   ],
   "Static": [
     {
       "Path": "/home",
-      "Target": "/app/html"
+      "Dir": "/root/home"
     }
   ],
-  "DynamicService": {
-    "Path": "/proxy",
-    "Query": "url"
-  },
+  "Redirect": [
+    {
+      "Path": "/",
+      "Target": "http://server/home"
+    }
+  ],
   "HTTPS": {
     "CertFile": "/key/cert.csr",
     "KeyFile": "/key/key.key"
