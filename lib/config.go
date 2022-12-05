@@ -38,6 +38,7 @@ type Config struct {
 	Redirect       []RedirectConfig
 	Static         []StaticConfig
 	DynamicService *DynamicServiceConfig
+	CDNList        []string
 	HTTPS          *HTTPSConfig
 }
 
