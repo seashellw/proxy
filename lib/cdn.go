@@ -32,8 +32,8 @@ func (cdn *CDN) Start() {
 				log.Println(err)
 				continue
 			}
+			log.Println(res.Status, cdn+path)
 			if res.StatusCode != http.StatusOK {
-				log.Println(res.Status, cdn+path)
 				continue
 			}
 			for key, head := range res.Header {
