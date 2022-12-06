@@ -10,8 +10,8 @@ import (
 )
 
 type Server struct {
-	Mux *http.ServeMux
-	s   *http.Server
+	Mux    *http.ServeMux
+	Server *http.Server
 }
 
 // NewServer 创建一个新的服务器
@@ -23,11 +23,11 @@ func NewServer() *Server {
 
 // Start 启动
 func (s *Server) Start(addr string) error {
-	s.s = &http.Server{
+	s.Server = &http.Server{
 		Addr:    addr,
 		Handler: s.Mux,
 	}
-	err := s.s.ListenAndServe()
+	err := s.Server.ListenAndServe()
 	if err != nil {
 		log.Println(err)
 	}
@@ -36,11 +36,11 @@ func (s *Server) Start(addr string) error {
 
 // StartTLS HTTPS启动
 func (s *Server) StartTLS(addr string, certFile, keyFile string) error {
-	s.s = &http.Server{
+	s.Server = &http.Server{
 		Addr:    addr,
 		Handler: s.Mux,
 	}
-	err := s.s.ListenAndServeTLS(certFile, keyFile)
+	err := s.Server.ListenAndServeTLS(certFile, keyFile)
 	if err != nil {
 		log.Println(err)
 	}
@@ -49,8 +49,8 @@ func (s *Server) StartTLS(addr string, certFile, keyFile string) error {
 
 // Stop 停机
 func (s *Server) Stop() {
-	if s.s != nil {
-		_ = s.s.Shutdown(context.Background())
+	if s.Server != nil {
+		_ = s.Server.Shutdown(context.Background())
 	}
 }
 
