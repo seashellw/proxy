@@ -151,6 +151,7 @@ func (s *Server) Proxy(pattern string, target string) *Server {
 			req.URL.Scheme = targetUrl.Scheme
 			req.URL.Host = targetUrl.Host
 			req.URL.Path = targetUrl.Path
+			log.Println(req.URL.String())
 		}
 		s.Mux.HandleFunc(pattern, preServe(proxy.ServeHTTP))
 	}
