@@ -151,12 +151,21 @@ func (s *Server) Proxy(pattern string, target string) *Server {
 			req.URL.Scheme = targetUrl.Scheme
 			req.URL.Host = targetUrl.Host
 			req.URL.Path = targetUrl.Path
-			log.Println(req.URL.String())
 		}
 		s.Mux.HandleFunc(pattern, preServe(proxy.ServeHTTP))
 	}
 
 	// 若不定义两个处理程序，则经测试可能会出现在有斜杠和没斜杠之间反复重定向的问题，
 	// 例如：访问 /home 会重定向到 /home/，再访问 /home/ 会重定向到 /home，如此反复。
+	return s
+}
+
+// WebsocketProxy websocket代理服务
+func (s *Server) WebsocketProxy(pattern string, target string) *Server {
+	pattern = strings.TrimSuffix(pattern, "/")
+	target = strings.TrimSuffix(target, "/")
+	targetUrl, _ := url.Parse(target)
+	proxy := httputil.NewSingleHostReverseProxy(targetUrl)
+	s.Mux.Handle(pattern+"/", http.StripPrefix(pattern, proxy))
 	return s
 }

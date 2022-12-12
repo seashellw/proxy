@@ -32,14 +32,20 @@ type RedirectConfig struct {
 	Target string
 }
 
+type WebsocketConfig struct {
+	Path   string
+	Target string
+}
+
 type Config struct {
-	Password       string
-	Service        []ServiceConfig
-	Redirect       []RedirectConfig
-	Static         []StaticConfig
-	DynamicService *DynamicServiceConfig
-	CDNList        []string
-	HTTPS          *HTTPSConfig
+	Password        string
+	Service         []ServiceConfig
+	Redirect        []RedirectConfig
+	Static          []StaticConfig
+	DynamicService  *DynamicServiceConfig
+	CDNList         []string
+	WebsocketConfig []WebsocketConfig
+	HTTPS           *HTTPSConfig
 }
 
 var fileLock = &sync.RWMutex{}
