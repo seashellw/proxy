@@ -3,6 +3,7 @@ package lib
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"os"
 	"sync"
 )
@@ -32,20 +33,14 @@ type RedirectConfig struct {
 	Target string
 }
 
-type WebsocketConfig struct {
-	Path   string
-	Target string
-}
-
 type Config struct {
-	Password        string
-	Service         []ServiceConfig
-	Redirect        []RedirectConfig
-	Static          []StaticConfig
-	DynamicService  *DynamicServiceConfig
-	CDNList         []string
-	WebsocketConfig []WebsocketConfig
-	HTTPS           *HTTPSConfig
+	Password       string
+	Service        []ServiceConfig
+	Redirect       []RedirectConfig
+	Static         []StaticConfig
+	DynamicService *DynamicServiceConfig
+	CDNList        []string
+	HTTPS          *HTTPSConfig
 }
 
 var fileLock = &sync.RWMutex{}
@@ -57,11 +52,15 @@ func (config *Config) Get() *Config {
 	defer fileLock.RUnlock()
 	file, err := os.Open(ConfigFilePath)
 	if err != nil {
+		log.Println(err)
 		return nil
 	}
-	defer file.Close()
 	decoder := json.NewDecoder(file)
-	decoder.Decode(&config)
+	err = decoder.Decode(&config)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
 	return config
 }
 
@@ -70,9 +69,17 @@ func (config *Config) Write(data []byte) {
 	if len(data) == 0 {
 		data = []byte("{}")
 	}
-	json.Indent(&out, data, "", "  ")
+	err := json.Indent(&out, data, "", "  ")
+	if err != nil {
+		log.Println(err)
+		return
+	}
 	fileLock.Lock()
-	os.WriteFile(ConfigFilePath, out.Bytes(), 0755)
+	err = os.WriteFile(ConfigFilePath, out.Bytes(), 0755)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 	fileLock.Unlock()
 	config.Get()
 }

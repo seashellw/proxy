@@ -54,12 +54,6 @@ func (proxy *Proxy) Start() {
 		})
 	}
 
-	if c.WebsocketConfig != nil {
-		for _, ws := range c.WebsocketConfig {
-			proxy.Server.WebsocketProxy(ws.Path, ws.Target)
-		}
-	}
-
 	log.Println("proxy server start")
 
 	if c.HTTPS != nil {

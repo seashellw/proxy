@@ -159,13 +159,3 @@ func (s *Server) Proxy(pattern string, target string) *Server {
 	// 例如：访问 /home 会重定向到 /home/，再访问 /home/ 会重定向到 /home，如此反复。
 	return s
 }
-
-// WebsocketProxy websocket代理服务
-func (s *Server) WebsocketProxy(pattern string, target string) *Server {
-	pattern = strings.TrimSuffix(pattern, "/")
-	target = strings.TrimSuffix(target, "/")
-	targetUrl, _ := url.Parse(target)
-	proxy := httputil.NewSingleHostReverseProxy(targetUrl)
-	s.Mux.Handle(pattern+"/", http.StripPrefix(pattern, proxy))
-	return s
-}
