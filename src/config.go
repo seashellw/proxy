@@ -1,4 +1,4 @@
-package lib
+package src
 
 import (
 	"bytes"
@@ -13,34 +13,12 @@ type HTTPSConfig struct {
 	KeyFile  string
 }
 
-type ServiceConfig struct {
-	Target string
-	Path   string
-}
-
-type DynamicServiceConfig struct {
-	Path  string
-	Query string
-}
-
-type StaticConfig struct {
-	Path string
-	Dir  string
-}
-
-type RedirectConfig struct {
-	Path   string
-	Target string
-}
-
 type Config struct {
-	Password       string
-	Service        []ServiceConfig
-	Redirect       []RedirectConfig
-	Static         []StaticConfig
-	DynamicService *DynamicServiceConfig
-	CDNList        []string
-	HTTPS          *HTTPSConfig
+	Service  map[string]string `json:"service"`
+	Redirect map[string]string `json:"redirect"`
+	Static   map[string]string `json:"static"`
+	CDN      []string          `json:"cdn"`
+	HTTPS    *HTTPSConfig      `json:"HTTPS"`
 }
 
 var fileLock = &sync.RWMutex{}
@@ -85,7 +63,6 @@ func (config *Config) Write(data []byte) {
 }
 
 func (config *Config) Set(c *Config) error {
-	c.Password = config.Password
 	data, err := json.Marshal(c)
 	if err != nil {
 		return err

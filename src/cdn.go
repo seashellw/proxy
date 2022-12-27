@@ -1,32 +1,32 @@
-package lib
+package src
 
 import (
 	"io"
 	"log"
 	"net/http"
-	"proxy/hp"
+	"proxy/lib"
 )
 
 type CDN struct {
 	Config *Config
-	Server *hp.Server
+	Server *lib.Server
 }
 
 func (cdn *CDN) Start() {
 	if cdn.Server != nil {
 		cdn.Stop()
 	}
-	if cdn.Config.CDNList == nil {
+	if cdn.Config.CDN == nil {
 		return
 	}
-	cdn.Server = hp.NewServer()
-	cdn.Server.HandleFunc("/", func(ctx *hp.Context) {
+	cdn.Server = lib.NewServer()
+	cdn.Server.HandleFunc("/", func(ctx *lib.Context) {
 		path := ctx.Req.URL.Path
 		if path == "/" {
 			ctx.SendText("cdn server")
 			return
 		}
-		for _, cdn := range cdn.Config.CDNList {
+		for _, cdn := range cdn.Config.CDN {
 			res, err := http.Get(cdn + path)
 			if err != nil {
 				log.Println(err)

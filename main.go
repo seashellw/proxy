@@ -1,17 +1,17 @@
 package main
 
 import (
-	"proxy/lib"
+	"proxy/src"
 )
 
 func main() {
-	config := &lib.Config{}
+	config := &src.Config{}
 	config.Get()
-	cdn := &lib.CDN{
+	cdn := &src.CDN{
 		Config: config,
 	}
 	go cdn.Start()
-	proxy := &lib.Proxy{
+	proxy := &src.Proxy{
 		Config: config,
 	}
 	proxy.Start()

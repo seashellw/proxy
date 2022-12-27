@@ -1,4 +1,4 @@
-package hp
+package lib
 
 import (
 	"encoding/json"
