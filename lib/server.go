@@ -58,6 +58,7 @@ func (s *Server) Stop() {
 func (s *Server) Static(prefix string, fs http.FileSystem) *Server {
 	prefix = strings.TrimSuffix(prefix, "/")
 	handler := http.StripPrefix(prefix, http.FileServer(fs))
+	log.Println("static", prefix)
 	s.Mux.HandleFunc(prefix+"/", func(w http.ResponseWriter, r *http.Request) {
 		name := strings.TrimPrefix(r.URL.Path, prefix)
 		file, err := fs.Open(name)
@@ -66,6 +67,7 @@ func (s *Server) Static(prefix string, fs http.FileSystem) *Server {
 		} else {
 			_ = file.Close()
 		}
+		log.Println("GET", r.URL.Path)
 		handler.ServeHTTP(w, r)
 	})
 	if prefix == "" {
