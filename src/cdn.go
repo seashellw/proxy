@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"proxy/lib"
+	"sync"
 )
 
 type CDN struct {
@@ -26,25 +27,35 @@ func (cdn *CDN) Start() {
 			ctx.SendText("cdn server")
 			return
 		}
+		wg := sync.WaitGroup{}
+		isReturn := false
 		for _, cdn := range cdn.Config.CDN {
-			res, err := http.Get(cdn + path)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			log.Println(res.Status, cdn+path)
-			if res.StatusCode != http.StatusOK {
-				continue
-			}
-			for key, head := range res.Header {
-				for _, val := range head {
-					ctx.Res.Header().Add(key, val)
+			wg.Add(1)
+			go func(cdn string) {
+				res, err := http.Get(cdn + path)
+				if res != nil {
+					log.Println(res.Status, cdn+path)
+				} else {
+					log.Println(err, cdn+path)
 				}
-			}
-			_, _ = io.Copy(ctx.Res, res.Body)
-			return
+				if isReturn || err != nil || res.StatusCode != http.StatusOK {
+					wg.Done()
+					return
+				}
+				for key, head := range res.Header {
+					for _, val := range head {
+						ctx.Res.Header().Add(key, val)
+					}
+				}
+				_, _ = io.Copy(ctx.Res, res.Body)
+				isReturn = true
+				wg.Done()
+			}(cdn)
 		}
-		ctx.SetNotFound()
+		wg.Wait()
+		if !isReturn {
+			ctx.SetNotFound()
+		}
 	})
 
 	log.Println("cdn proxy server start")
